@@ -24,85 +24,93 @@ enum CursorUsageMapping {
         }
         let plan = JSONFields.dictionary(root["planUsage"]) ?? [:]
         let spend = JSONFields.dictionary(root["spendLimitUsage"])
+        let resetsAt = JSONFields.date(from: root["billingCycleEnd"])
 
+        // Pro+ and the other current plans expose two included pools as percents
+        // (Cursor models and other models). includedSpend is the plan's dollar
+        // credit — $70 on Pro+, which costs $60/mo — and the spending page does
+        // not show it. displayMessage can say the limit is hit while those pools
+        // are nearly empty, so neither belongs next to the percent meters.
+        if JSONFields.double(plan["autoPercentUsed"]) != nil || JSONFields.double(plan["apiPercentUsed"]) != nil {
+            return percentSnapshot(plan: plan, resetsAt: resetsAt, fetchedAt: fetchedAt)
+        }
+        return dollarSnapshot(plan: plan, spend: spend, resetsAt: resetsAt, fetchedAt: fetchedAt)
+    }
+
+    private static func percentSnapshot(plan: [String: Any], resetsAt: Date?, fetchedAt: Date) -> UsageSnapshot {
         var meters: [Meter] = []
         var percents: [Double] = []
         if let auto = JSONFields.double(plan["autoPercentUsed"]) {
             percents.append(auto)
-            meters.append(percentMeter(id: "cursor-models", title: "Cursor models", percent: auto))
+            meters.append(percentMeter(id: "cursor-models", title: "Cursor models", percent: auto, resetsAt: resetsAt, now: fetchedAt))
         }
         if let api = JSONFields.double(plan["apiPercentUsed"]) {
             percents.append(api)
-            meters.append(percentMeter(id: "other-models", title: "Other models", percent: api))
+            meters.append(percentMeter(id: "other-models", title: "Other models", percent: api, resetsAt: resetsAt, now: fetchedAt))
         }
-
-        var includedFraction: Double?
-        if percents.isEmpty,
-           let limit = JSONFields.double(plan["limit"]),
-           let included = JSONFields.double(plan["includedSpend"]),
-           limit > 0 {
-            let fraction = min(1, max(0, included / limit))
-            includedFraction = fraction
-            meters.append(Meter(
-                id: "included",
-                title: "Included",
-                fraction: fraction,
-                caption: UsageFormatting.usedCaption(percent: fraction * 100, resetsAt: nil, now: fetchedAt)
-            ))
-        }
-
-        let menu: Double?
-        if let maxPercent = percents.max() {
-            menu = UsageFormatting.clampedFraction(percent: maxPercent)
-        } else {
-            menu = includedFraction
-        }
-
         return UsageSnapshot(
             provider: .cursor,
             fetchedAt: fetchedAt,
             meters: meters,
-            breakdown: breakdown(plan: plan, spend: spend, headline: JSONFields.string(root["displayMessage"])),
+            menuBarFraction: percents.max().map(UsageFormatting.clampedFraction(percent:))
+        )
+    }
+
+    /// Older responses have no percent pools. includedSpend is cents used and limit is the included credit, in cents.
+    private static func dollarSnapshot(
+        plan: [String: Any],
+        spend: [String: Any]?,
+        resetsAt: Date?,
+        fetchedAt: Date
+    ) -> UsageSnapshot {
+        var meters: [Meter] = []
+        var menu: Double?
+        let includedCents = JSONFields.double(plan["includedSpend"]) ?? 0
+        let limitCents = JSONFields.double(plan["limit"]) ?? 0
+        if limitCents > 0 {
+            let fraction = min(1, max(0, includedCents / limitCents))
+            menu = fraction
+            meters.append(Meter(
+                id: "included",
+                title: "Included",
+                fraction: fraction,
+                caption: dollarCaption(usedCents: includedCents, limitCents: limitCents, resetsAt: resetsAt, now: fetchedAt)
+            ))
+        }
+        if let spend, let onDemandLimit = JSONFields.double(spend["individualLimit"]), onDemandLimit > 0 {
+            let used = JSONFields.double(spend["individualUsed"]) ?? 0
+            let fraction = min(1, max(0, used / onDemandLimit))
+            if menu == nil { menu = fraction }
+            meters.append(Meter(
+                id: "on-demand",
+                title: "On-demand",
+                fraction: fraction,
+                caption: dollarCaption(usedCents: used, limitCents: onDemandLimit, resetsAt: resetsAt, now: fetchedAt)
+            ))
+        }
+        return UsageSnapshot(
+            provider: .cursor,
+            fetchedAt: fetchedAt,
+            meters: meters,
             menuBarFraction: menu
         )
     }
 
-    private static func percentMeter(id: String, title: String, percent: Double) -> Meter {
+    private static func percentMeter(id: String, title: String, percent: Double, resetsAt: Date?, now: Date) -> Meter {
         Meter(
             id: id,
             title: title,
             fraction: UsageFormatting.clampedFraction(percent: percent),
-            caption: UsageFormatting.usedCaption(percent: percent, resetsAt: nil, now: Date())
+            caption: UsageFormatting.usedCaption(percent: percent, resetsAt: resetsAt, now: now)
         )
     }
 
-    private static func breakdown(plan: [String: Any], spend: [String: Any]?, headline: String?) -> Breakdown? {
-        var segments: [UsageSegment] = []
-        if let includedCents = JSONFields.double(plan["includedSpend"]) {
-            segments.append(UsageSegment(
-                id: "included-spend",
-                title: "Included",
-                amount: includedCents / 100,
-                displayValue: UsageFormatting.dollars(cents: includedCents),
-                color: .green
-            ))
+    private static func dollarCaption(usedCents: Double, limitCents: Double, resetsAt: Date?, now: Date) -> String {
+        var caption = "\(UsageFormatting.dollars(cents: usedCents)) of \(UsageFormatting.dollars(cents: limitCents))"
+        if let resetsAt {
+            caption += " · \(UsageFormatting.resetHint(resetsAt, now: now))"
         }
-        if let spend, let onDemandCents = JSONFields.double(spend["individualUsed"]) {
-            segments.append(UsageSegment(
-                id: "on-demand",
-                title: "On-demand",
-                amount: onDemandCents / 100,
-                displayValue: UsageFormatting.dollars(cents: onDemandCents),
-                color: .purple
-            ))
-        }
-        if !segments.contains(where: { $0.amount != 0 }) {
-            segments = []
-        }
-        let trimmedHeadline = headline?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let headlineText = (trimmedHeadline?.isEmpty == false) ? trimmedHeadline : nil
-        if segments.isEmpty, headlineText == nil { return nil }
-        return Breakdown(headline: headlineText, total: nil, segments: segments)
+        return caption
     }
 }
 

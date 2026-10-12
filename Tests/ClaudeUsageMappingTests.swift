@@ -72,6 +72,89 @@ final class ClaudeUsageMappingTests: XCTestCase {
         XCTAssertEqual(segments.map(\.amount), [12.0, 3.0])
         XCTAssertFalse(segments.contains { $0.title.contains("Session") || $0.title.contains("Weekly") || $0.title == "Ignored" })
         XCTAssertFalse(snapshot.meters.contains { $0.title == "Opus" || $0.caption.contains("$") })
+        XCTAssertNil(ClaudeUsageMapping.inventory(combining: ClaudeUsageMapping.resetRead(from: Data(Self.usage.utf8), now: fetchedAt)))
+    }
+
+    func testLimitResetsSumUsableGrantsAndSkipTheRest() {
+        let later = "2026-10-23T03:00:00Z"
+        let sooner = "2026-10-20T03:00:00Z"
+        let json = Data("""
+        {
+          "eligible": true,
+          "grants": [
+            {"id": "soon", "resets_left": 1, "ends_at": "\(sooner)", "paused": false},
+            {"id": "later", "resets_left": 2, "ends_at": "\(later)"},
+            {"id": "paused", "resets_left": 4, "ends_at": "\(later)", "paused": true},
+            {"id": "future", "resets_left": 3, "starts_at": "2026-12-01T00:00:00Z", "ends_at": "\(later)"},
+            {"id": "expired", "resets_left": 5, "ends_at": "2020-01-01T00:00:00Z"}
+          ]
+        }
+        """.utf8)
+        let object = try! JSONSerialization.jsonObject(with: json)
+        let parsed = ClaudeUsageMapping.parseLimitResets(object, now: fetchedAt)
+        XCTAssertEqual(parsed.left, 3)
+        XCTAssertEqual(parsed.endAt, UsageFormatting.parseISO8601(sooner))
+        let extras = ClaudeAccountExtras(limitResetsLeft: parsed.left, limitResetsEndAt: parsed.endAt)
+        XCTAssertTrue(extras.limitResetCaption?.hasPrefix("3 usage-limit resets available until ") == true)
+        XCTAssertNil(ClaudeAccountExtras().limitResetCaption)
+    }
+
+    func testIneligibleResetsAreZero() {
+        let json = Data(#"{"eligible": false, "grants": [{"resets_left": 1, "ends_at": "2026-10-23T03:00:00Z"}]}"#.utf8)
+        let object = try! JSONSerialization.jsonObject(with: json)
+        XCTAssertEqual(ClaudeUsageMapping.parseLimitResets(object, now: fetchedAt).left, 0)
+    }
+
+    func testFreeCreditsPreferAmountThenTranches() throws {
+        let amount = try XCTUnwrap(ClaudeUsageMapping.freeCredits(from: Data(#"{"amount": 250, "currency": "USD"}"#.utf8)))
+        XCTAssertEqual(amount.minor, 250)
+        XCTAssertEqual(amount.currency, "USD")
+        XCTAssertEqual(ClaudeAccountExtras(currency: "USD", freeCreditsMinor: 250).money(250), "$2.50")
+
+        let tranches = try XCTUnwrap(ClaudeUsageMapping.freeCredits(from: Data("""
+        {"tranches": [{"remaining_amount_minor_units": 100}], "promo_tranches": [{"remaining_amount_minor_units": 50}]}
+        """.utf8)))
+        XCTAssertEqual(tranches.minor, 150)
+    }
+
+    func testExtraUsageCaptionAndReassurance() throws {
+        let extra = try XCTUnwrap(ClaudeUsageMapping.extraUsage(from: Data("""
+        {"used_credits": 150, "monthly_credit_limit": 2000, "currency": "USD", "disabled_until": "2026-11-01T00:00:00Z"}
+        """.utf8)))
+        XCTAssertEqual(extra.spent, 150)
+        XCTAssertEqual(extra.limit, 2000)
+        var extras = ClaudeAccountExtras(
+            currency: extra.currency,
+            spentMinor: extra.spent,
+            limitMinor: extra.limit,
+            extraResetsAt: extra.resetsAt
+        )
+        XCTAssertEqual(extras.extraCaption, "$1.50 of $20.00 · 8%")
+        XCTAssertTrue(extras.extraResetCaption?.hasPrefix("Resets ") == true)
+
+        extras.spentMinor = 2500
+        XCTAssertEqual(extras.extraCaption, "$25.00 of $20.00 · over limit")
+        XCTAssertEqual(extras.extraFraction, 1)
+
+        XCTAssertEqual(ClaudeAccountExtras().reassurance, "No Fable or extra usage")
+        XCTAssertEqual(ClaudeAccountExtras(freeCreditsMinor: 100).reassurance, "No Fable usage")
+        XCTAssertEqual(ClaudeAccountExtras(fableActive: true).reassurance, "No extra usage")
+        XCTAssertNil(ClaudeAccountExtras(freeCreditsMinor: 100, fableActive: true).reassurance)
+        XCTAssertTrue(ClaudeUsageMapping.fableIsActive(in: Data(#"{"limits":[{"percent": 4, "scope": {"model": {"display_name": "Fable"}}}]}"#.utf8)))
+        XCTAssertFalse(ClaudeUsageMapping.fableIsActive(in: Data(#"{"limits":[{"percent": 0, "scope": {"model": {"display_name": "Fable"}}}]}"#.utf8)))
+    }
+
+    func testNullResetBlockIsNotAnAnswer() {
+        let json = Data(#"{"cedar_ember": null, "juniper_tide": null}"#.utf8)
+        XCTAssertNil(ClaudeUsageMapping.inventory(combining: ClaudeUsageMapping.resetRead(from: json, now: fetchedAt)))
+    }
+
+    func testEvaluatedEmptyResetIsNone() {
+        let json = Data(#"{"cedar_ember": {"eligible": false, "grants": []}, "juniper_tide": {"eligible": false, "arm": "control"}}"#.utf8)
+        XCTAssertEqual(
+            ClaudeUsageMapping.inventory(combining: ClaudeUsageMapping.resetRead(from: json, now: fetchedAt)),
+            ResetInventory.none
+        )
     }
 
     private static let orgs = """

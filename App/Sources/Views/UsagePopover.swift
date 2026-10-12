@@ -21,6 +21,7 @@ struct UsagePopover: View {
                     ProviderSection(
                         provider: provider,
                         phase: model.phases[provider] ?? .unconfigured,
+                        health: model.serviceHealth[provider],
                         hasSavedSecret: model.savedSecretProviders.contains(provider),
                         onSave: { model.saveSecret(for: provider, value: $0) },
                         onRemove: { model.removeSecret(for: provider) }
@@ -33,6 +34,7 @@ struct UsagePopover: View {
         }
         .padding(Theme.padding)
         .frame(width: Theme.popoverWidth, alignment: .leading)
+        .fixedSize(horizontal: true, vertical: true)
         .background(Theme.background)
         .preferredColorScheme(.dark)
         .onAppear {

@@ -1,3 +1,4 @@
+import AppKit
 import XCTest
 @testable import AIUsageWidget
 
@@ -44,14 +45,13 @@ final class MenuBarMathTests: XCTestCase {
             MenuBarReading(provider: .cursor, percent: nil),
             MenuBarReading(provider: .grok, percent: 80)
         ]
-        let title = MenuBarTitle.attributedTitle(for: readings)
-        let raw = title.string
-        XCTAssertEqual(raw.components(separatedBy: "\u{FFFC}").count - 1, 4)
-        XCTAssertTrue(raw.contains("0%"))
-        XCTAssertTrue(raw.contains("12%"))
-        XCTAssertTrue(raw.contains("–"))
-        XCTAssertTrue(raw.contains("80%"))
-        XCTAssertGreaterThan(MenuBarTitle.statusLength(for: title), 80)
+        let image = MenuBarTitle.statusImage(for: readings)
+        XCTAssertTrue(image.isTemplate)
+        XCTAssertGreaterThan(image.size.width, 80)
+        XCTAssertEqual(MenuBarLabel.valueTitle(percent: 0), "0%")
+        XCTAssertEqual(MenuBarLabel.valueTitle(percent: 12), "12%")
+        XCTAssertEqual(MenuBarLabel.valueTitle(percent: nil), "–")
+        XCTAssertEqual(MenuBarLabel.valueTitle(percent: 80), "80%")
     }
 
     func testNilWhenNoRealFraction() {
@@ -79,6 +79,112 @@ final class MenuBarMathTests: XCTestCase {
             snapshot(.cursor, fraction: 0.25)
         ]
         XCTAssertEqual(MenuBarMath.percent(from: snapshots), 25)
+    }
+
+    func testOfficialMarksOccupyTheirViewBoxes() {
+        let claude = ProviderGlyph.makePath(for: .claude).boundingBoxOfPath
+        XCTAssertEqual(claude.minX, 0, accuracy: 0.6)
+        XCTAssertEqual(claude.minY, 0, accuracy: 0.6)
+        XCTAssertEqual(claude.width, 24, accuracy: 1)
+        XCTAssertEqual(claude.height, 24, accuracy: 1)
+
+        let codex = ProviderGlyph.makePath(for: .codex).boundingBoxOfPath
+        XCTAssertEqual(codex.minX, 0, accuracy: 0.8)
+        XCTAssertEqual(codex.minY, 0, accuracy: 0.8)
+        XCTAssertEqual(codex.width, 24, accuracy: 1.2)
+        XCTAssertEqual(codex.height, 24, accuracy: 1.2)
+
+        let cursor = ProviderGlyph.makePath(for: .cursor).boundingBoxOfPath
+        XCTAssertGreaterThan(cursor.width, 400)
+        XCTAssertGreaterThan(cursor.height, 450)
+
+        let grok = ProviderGlyph.makePath(for: .grok).boundingBoxOfPath
+        XCTAssertEqual(grok.width, 21, accuracy: 0.5)
+        XCTAssertEqual(grok.height, 21, accuracy: 0.5)
+    }
+
+    func testArcFollowsSVGSweep() {
+        let box = SVGPathParser.path(from: "M0 0 A1 1 0 0 1 2 0").boundingBoxOfPath
+        XCTAssertEqual(box.midX, 1, accuracy: 0.08)
+        XCTAssertEqual(box.minY, -1, accuracy: 0.08)
+        XCTAssertEqual(box.maxY, 0, accuracy: 0.08)
+    }
+
+    func testFittedMarksStayInsideTheMenuBarSlot() {
+        let rect = CGRect(x: 0, y: 0, width: 15, height: 15)
+        for provider in ProviderID.allCases {
+            let box = ProviderGlyph.fittedPath(for: provider, in: rect).boundingBoxOfPath
+            XCTAssertGreaterThanOrEqual(box.minX, -0.05, provider.rawValue)
+            XCTAssertGreaterThanOrEqual(box.minY, -0.05, provider.rawValue)
+            XCTAssertLessThanOrEqual(box.maxX, 15.05, provider.rawValue)
+            XCTAssertLessThanOrEqual(box.maxY, 15.05, provider.rawValue)
+        }
+    }
+
+    @MainActor
+    func testMarksKeepShape() {
+        for provider in ProviderID.allCases {
+            let plain = opaqueFraction(bitmap(for: provider))
+            XCTAssertGreaterThan(plain, 0.12, provider.rawValue)
+            XCTAssertLessThan(plain, 0.9, provider.rawValue)
+        }
+
+        XCTAssertTrue(containsPixel(in: bitmap(for: .codex)) { _, _, _, alpha in alpha < 0.2 })
+        XCTAssertTrue(containsPixel(in: bitmap(for: .cursor)) { _, _, _, alpha in alpha < 0.2 })
+        XCTAssertTrue(containsPixel(in: bitmap(for: .grok)) { _, _, _, alpha in alpha < 0.2 })
+    }
+
+    @MainActor
+    private func bitmap(for provider: ProviderID, side: Int = 64) -> NSBitmapImageRep {
+        let image = ProviderMarkImage.makeImage(for: provider, side: CGFloat(side))
+        image.isTemplate = false
+        let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: side,
+            pixelsHigh: side,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        )!
+        rep.size = NSSize(width: side, height: side)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        image.draw(in: NSRect(x: 0, y: 0, width: side, height: side))
+        NSGraphicsContext.restoreGraphicsState()
+        return rep
+    }
+
+    private func opaqueFraction(_ rep: NSBitmapImageRep) -> Double {
+        let total = rep.pixelsWide * rep.pixelsHigh
+        guard total > 0 else { return 0 }
+        var opaque = 0
+        for y in 0..<rep.pixelsHigh {
+            for x in 0..<rep.pixelsWide {
+                if (rep.colorAt(x: x, y: y)?.alphaComponent ?? 0) > 0.5 {
+                    opaque += 1
+                }
+            }
+        }
+        return Double(opaque) / Double(total)
+    }
+
+    private func containsPixel(
+        in rep: NSBitmapImageRep,
+        where matches: (CGFloat, CGFloat, CGFloat, CGFloat) -> Bool
+    ) -> Bool {
+        for y in 0..<rep.pixelsHigh {
+            for x in 0..<rep.pixelsWide {
+                guard let color = rep.colorAt(x: x, y: y) else { continue }
+                if matches(color.redComponent, color.greenComponent, color.blueComponent, color.alphaComponent) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     func testEnabledSectionsDefaultsToAllWhenUnset() {

@@ -6,6 +6,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var phases: [ProviderID: ProviderPhase]
     @Published private(set) var savedSecretProviders: Set<ProviderID> = []
     @Published private(set) var enabledProviders: Set<ProviderID>
+    @Published private(set) var serviceHealth: [ProviderID: ServiceHealth] = [:]
     @Published private(set) var isRefreshing = false
     @Published private(set) var lastRefreshAt: Date?
 
@@ -163,6 +164,7 @@ final class AppModel: ObservableObject {
             }
         }
 
+        async let healthFetch = StatusPageFetcher().fetch()
         let registry = self.registry
         await withTaskGroup(of: (ProviderID, Result<UsageSnapshot, UsageFetchError>).self) { group in
             for provider in configured {
@@ -174,7 +176,17 @@ final class AppModel: ObservableObject {
                 apply(provider, result: result, stale: stale[provider])
             }
         }
+        mergeHealth(await healthFetch)
         lastRefreshAt = Date()
+    }
+
+    private func mergeHealth(_ fetched: [ProviderID: ServiceHealth]) {
+        for (provider, health) in fetched {
+            if health.level == .unknown, let existing = serviceHealth[provider], existing.level != .unknown {
+                continue
+            }
+            serviceHealth[provider] = health
+        }
     }
 
     private nonisolated static func fetchProvider(
