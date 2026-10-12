@@ -13,7 +13,7 @@ enum ClaudeRequests {
         return "sessionKey=\(value)"
     }
 
-    static func usageURL(orgID: String) -> URL? {
+    static func usageURL(orgID: String, probe: String? = nil) -> URL? {
         var allowed = CharacterSet.urlPathAllowed
         allowed.remove(charactersIn: "/")
         let encoded = orgID.addingPercentEncoding(withAllowedCharacters: allowed) ?? orgID
@@ -21,6 +21,28 @@ enum ClaudeRequests {
         components.scheme = "https"
         components.host = "claude.ai"
         components.path = "/api/organizations/\(encoded)/usage"
+        if let probe, !probe.isEmpty {
+            components.percentEncodedQuery = probe
+        }
+        return components.url
+    }
+
+    static func prepaidCreditsURL(orgID: String) -> URL? {
+        organizationURL(orgID: orgID, resource: "prepaid/credits")
+    }
+
+    static func overageURL(orgID: String) -> URL? {
+        organizationURL(orgID: orgID, resource: "overage_spend_limit")
+    }
+
+    private static func organizationURL(orgID: String, resource: String) -> URL? {
+        var allowed = CharacterSet.urlPathAllowed
+        allowed.remove(charactersIn: "/")
+        let encoded = orgID.addingPercentEncoding(withAllowedCharacters: allowed) ?? orgID
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "claude.ai"
+        components.path = "/api/organizations/\(encoded)/\(resource)"
         return components.url
     }
 
@@ -161,6 +183,180 @@ enum ClaudeUsageMapping {
         if let scope = JSONFields.string(object["scope"]) { return scope }
         return JSONFields.string(object["model"])
     }
+
+    struct ResetRead: Equatable {
+        var cedar: ResetInventory?
+        var juniper: ResetInventory?
+    }
+
+    static func resetRead(from data: Data, now: Date) -> ResetRead {
+        guard let object = JSONFields.decodeObject(data) else { return ResetRead() }
+        var read = ResetRead()
+        if let block = JSONFields.dictionary(object["cedar_ember"]) {
+            read.cedar = cedarInventory(block, now: now)
+        }
+        if read.cedar == nil {
+            for (key, value) in object where key != "juniper_tide" {
+                guard let block = JSONFields.dictionary(value), block["grants"] != nil else { continue }
+                read.cedar = cedarInventory(block, now: now)
+                break
+            }
+        }
+        if let block = JSONFields.dictionary(object["juniper_tide"]) {
+            read.juniper = juniperInventory(block, now: now)
+        }
+        return read
+    }
+
+    static func inventory(combining read: ResetRead) -> ResetInventory? {
+        var grants: [LimitReset] = []
+        var evaluated = false
+        for inventory in [read.cedar, read.juniper] {
+            guard let inventory else { continue }
+            evaluated = true
+            if case .grants(let items) = inventory {
+                grants.append(contentsOf: items)
+            }
+        }
+        if !grants.isEmpty { return .grants(grants) }
+        return evaluated ? ResetInventory.none : nil
+    }
+
+    private static func cedarInventory(_ block: [String: Any], now: Date) -> ResetInventory {
+        let rawGrants = block["grants"] as? [Any] ?? []
+        var grants: [LimitReset] = []
+        for item in rawGrants {
+            guard let grant = item as? [String: Any] else { continue }
+            guard let remaining = wholeNumber(grant["resets_left"]), remaining > 0 else { continue }
+            let expires = JSONFields.date(from: grant["ends_at"])
+            if let expires, expires <= now { continue }
+            let clears = (grant["clears"] as? [Any])?.compactMap { JSONFields.string($0) } ?? []
+            let id = JSONFields.string(grant["id"]) ?? "cedar-\(grants.count)"
+            grants.append(LimitReset(
+                id: id,
+                remaining: remaining,
+                restores: restores(clears),
+                expiresAt: expires,
+                available: JSONFields.bool(grant["usable_now"]) ?? true
+            ))
+        }
+        return grants.isEmpty ? .none : .grants(grants)
+    }
+
+    private static func juniperInventory(_ block: [String: Any], now: Date) -> ResetInventory {
+        let eligible = JSONFields.bool(block["eligible"]) ?? false
+        let arm = JSONFields.string(block["arm"])
+        guard eligible, arm == "reset" else { return .none }
+        let available = JSONFields.bool(block["available"]) ?? false
+        let expires = JSONFields.date(from: available ? block["weekly_resets_at"] : block["next_available_at"])
+            ?? JSONFields.date(from: block["weekly_resets_at"])
+        if let expires, expires <= now, !available { return .none }
+        return .grants([
+            LimitReset(
+                id: "juniper_tide",
+                remaining: available ? 1 : 0,
+                restores: "the 5-hour session",
+                expiresAt: expires,
+                available: available
+            )
+        ])
+    }
+
+    private static func restores(_ clears: [String]) -> String {
+        let names = clears.map(windowName)
+        return switch names.count {
+        case 0: "your usage limit"
+        case 1: names[0]
+        case 2: "\(names[0]) and \(names[1])"
+        default:
+            names.dropLast().joined(separator: ", ") + ", and " + (names.last ?? "your usage limit")
+        }
+    }
+
+    private static func windowName(_ id: String) -> String {
+        switch id {
+        case "five_hour", "anthropic:5h":
+            return "the 5-hour session"
+        case "seven_day", "anthropic:7d", "weekly_all":
+            return "the weekly limit"
+        case "seven_day_opus", "anthropic:7d:opus":
+            return "the Opus weekly limit"
+        case "seven_day_sonnet", "anthropic:7d:sonnet":
+            return "the Sonnet weekly limit"
+        default:
+            return "the \(id.replacingOccurrences(of: "anthropic:", with: "").replacingOccurrences(of: "_", with: " ")) limit"
+        }
+    }
+
+    private static func wholeNumber(_ value: Any?) -> Int? {
+        guard let number = JSONFields.double(value), number >= 0, number.rounded() == number else { return nil }
+        return Int(number)
+    }
+
+    /// Usable banked resets. Matches Claude Usage Bar: eligible, not paused, inside the grant window.
+    static func parseLimitResets(_ raw: Any?, now: Date) -> (left: Int, endAt: Date?) {
+        guard let object = JSONFields.dictionary(raw),
+              JSONFields.bool(object["eligible"]) == true,
+              let grants = object["grants"] as? [Any]
+        else { return (0, nil) }
+        var total = 0
+        var earliest: Date?
+        for item in grants {
+            guard let grant = item as? [String: Any] else { continue }
+            guard let left = wholeNumber(grant["resets_left"]), left > 0 else { continue }
+            if JSONFields.bool(grant["paused"]) == true { continue }
+            guard let end = JSONFields.date(from: grant["ends_at"]), end > now else { continue }
+            if let start = JSONFields.date(from: grant["starts_at"]), start > now { continue }
+            total += left
+            earliest = min(earliest ?? end, end)
+        }
+        return (total, earliest)
+    }
+
+    static func freeCredits(from data: Data) -> (minor: Int, currency: String?)? {
+        guard let json = JSONFields.decodeObject(data) else { return nil }
+        let minor: Int
+        if let amount = wholeNumber(json["amount"]) {
+            minor = amount
+        } else {
+            var remaining = 0
+            for key in ["tranches", "promo_tranches"] {
+                guard let items = json[key] as? [Any] else { continue }
+                for item in items {
+                    guard let tranche = item as? [String: Any] else { continue }
+                    remaining += wholeNumber(tranche["remaining_amount_minor_units"]) ?? 0
+                }
+            }
+            minor = remaining
+        }
+        return (minor, JSONFields.string(json["currency"]))
+    }
+
+    static func extraUsage(from data: Data) -> (spent: Int, limit: Int, currency: String, resetsAt: Date?)? {
+        guard let json = JSONFields.decodeObject(data) else { return nil }
+        return (
+            spent: wholeNumber(json["used_credits"]) ?? 0,
+            limit: wholeNumber(json["monthly_credit_limit"]) ?? 0,
+            currency: JSONFields.string(json["currency"]) ?? "USD",
+            resetsAt: JSONFields.date(from: json["disabled_until"])
+        )
+    }
+
+    static func fableIsActive(in data: Data) -> Bool {
+        guard let object = JSONFields.decodeObject(data),
+              let limits = object["limits"] as? [Any]
+        else { return false }
+        for item in limits {
+            guard let entry = item as? [String: Any] else { continue }
+            let scope = entry["scope"] as? [String: Any]
+            let model = scope?["model"] as? [String: Any]
+            let name = JSONFields.string(model?["display_name"]) ?? JSONFields.string(entry["display_name"])
+            guard name == "Fable" else { continue }
+            let percent = JSONFields.double(entry["percent"]) ?? JSONFields.double(entry["utilization"]) ?? 0
+            return percent >= 1
+        }
+        return false
+    }
 }
 
 struct ClaudeUsageFetcher: UsageFetcher {
@@ -210,6 +406,73 @@ struct ClaudeUsageFetcher: UsageFetcher {
         ) {
             throw failure
         }
-        return try ClaudeUsageMapping.snapshot(from: usage.body, fetchedAt: now())
+        let fetchedAt = now()
+        var snapshot = try ClaudeUsageMapping.snapshot(from: usage.body, fetchedAt: fetchedAt)
+        snapshot.extras = await accountExtras(usageBody: usage.body, orgID: orgID, cookie: cookie, now: fetchedAt)
+        snapshot.resets = await resolveResets(initial: usage.body, orgID: orgID, cookie: cookie, now: fetchedAt)
+        return snapshot
+    }
+
+    private func accountExtras(usageBody: Data, orgID: String, cookie: String, now: Date) async -> ClaudeAccountExtras {
+        async let creditsBody = loadQuietly(ClaudeRequests.prepaidCreditsURL(orgID: orgID), cookie: cookie)
+        async let overageBody = loadQuietly(ClaudeRequests.overageURL(orgID: orgID), cookie: cookie)
+        async let resetBody = probe(orgID: orgID, cookie: cookie, query: "cedar_ember=1&skip_spend=1")
+
+        var extras = ClaudeAccountExtras(fableActive: ClaudeUsageMapping.fableIsActive(in: usageBody))
+        if let data = await creditsBody, let credits = ClaudeUsageMapping.freeCredits(from: data) {
+            extras.freeCreditsMinor = credits.minor
+            if let currency = credits.currency { extras.currency = currency }
+        }
+        if let data = await overageBody, let extra = ClaudeUsageMapping.extraUsage(from: data) {
+            extras.spentMinor = extra.spent
+            extras.limitMinor = extra.limit
+            extras.currency = extra.currency
+            extras.extraResetsAt = extra.resetsAt
+        }
+        let resetPayload = await resetBody ?? usageBody
+        if let object = JSONFields.decodeObject(resetPayload) {
+            let parsed = ClaudeUsageMapping.parseLimitResets(object["cedar_ember"], now: now)
+            extras.limitResetsLeft = parsed.left
+            extras.limitResetsEndAt = parsed.endAt
+        }
+        return extras
+    }
+
+    private func loadQuietly(_ url: URL?, cookie: String) async -> Data? {
+        guard let url else { return nil }
+        return await probe(url: url, cookie: cookie)
+    }
+
+    private func resolveResets(initial: Data, orgID: String, cookie: String, now: Date) async -> ResetInventory? {
+        var read = ClaudeUsageMapping.resetRead(from: initial, now: now)
+        if read.cedar == nil, let probed = await probe(orgID: orgID, cookie: cookie, query: "cedar_ember=1&skip_spend=1") {
+            let next = ClaudeUsageMapping.resetRead(from: probed, now: now)
+            read.cedar = next.cedar ?? read.cedar
+            read.juniper = next.juniper ?? read.juniper
+        }
+        let cedarHasGrant: Bool
+        if case .grants = read.cedar { cedarHasGrant = true } else { cedarHasGrant = false }
+        if !cedarHasGrant, read.juniper == nil,
+           let probed = await probe(orgID: orgID, cookie: cookie, query: "at_wall=1&skip_spend=1") {
+            let next = ClaudeUsageMapping.resetRead(from: probed, now: now)
+            read.juniper = next.juniper ?? read.juniper
+            read.cedar = read.cedar ?? next.cedar
+        }
+        return ClaudeUsageMapping.inventory(combining: read)
+    }
+
+    private func probe(orgID: String, cookie: String, query: String) async -> Data? {
+        guard let url = ClaudeRequests.usageURL(orgID: orgID, probe: query) else { return nil }
+        return await probe(url: url, cookie: cookie)
+    }
+
+    private func probe(url: URL, cookie: String) async -> Data? {
+        do {
+            let response = try await http.send(ClaudeRequests.make(url: url, cookie: cookie))
+            guard (200..<300).contains(response.statusCode) else { return nil }
+            return response.body
+        } catch {
+            return nil
+        }
     }
 }

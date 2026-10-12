@@ -4,28 +4,49 @@ import XCTest
 final class CursorUsageMappingTests: XCTestCase {
     private let fetchedAt = Date(timeIntervalSince1970: 1_789_000_000)
 
-    func testPercentsAreMetersAndSpendIsBreakdown() throws {
+    func testPercentsAreTheSubscriptionPools() throws {
         let snapshot = try CursorUsageMapping.snapshot(from: Data(Self.percents.utf8), fetchedAt: fetchedAt)
         XCTAssertEqual(snapshot.meters.map(\.title), ["Cursor models", "Other models"])
         XCTAssertEqual(snapshot.meters.map(\.caption), ["47% used", "12% used"])
         XCTAssertEqual(snapshot.menuBarFraction ?? -1, 0.47, accuracy: 0.000_001)
-        let breakdown = try XCTUnwrap(snapshot.breakdown)
-        XCTAssertEqual(breakdown.headline, "Resets on Nov 1")
-        XCTAssertEqual(breakdown.segments.map(\.title), ["Included", "On-demand"])
-        XCTAssertEqual(breakdown.segments.map(\.displayValue), ["$25.00", "$5.00"])
-        XCTAssertEqual(breakdown.segments.map(\.amount), [25.0, 5.0])
+        XCTAssertNil(snapshot.breakdown)
+        XCTAssertNil(snapshot.note)
         XCTAssertFalse(snapshot.meters.contains { $0.caption.contains("$") })
-        XCTAssertFalse(breakdown.segments.contains { $0.title == "Cursor models" || $0.title == "Other models" })
+    }
+
+    func testProPlusCreditIsNotShownBesidePercentPools() throws {
+        let snapshot = try CursorUsageMapping.snapshot(from: Data(Self.proPlus.utf8), fetchedAt: fetchedAt)
+        XCTAssertEqual(snapshot.meters.map(\.title), ["Cursor models", "Other models"])
+        XCTAssertEqual(snapshot.meters.map(\.caption), ["7% used", "0% used"])
+        XCTAssertEqual(snapshot.meters[0].fraction ?? -1, 0.07, accuracy: 0.000_001)
+        XCTAssertEqual(snapshot.meters[1].fraction ?? -1, 0, accuracy: 0.000_001)
+        XCTAssertEqual(snapshot.menuBarFraction ?? -1, 0.07, accuracy: 0.000_001)
+        XCTAssertNil(snapshot.breakdown)
+        XCTAssertNil(snapshot.note)
+        let rendered = snapshot.meters.map(\.caption).joined(separator: " ")
+        XCTAssertFalse(rendered.contains("70"))
+        XCTAssertFalse(rendered.contains("hit your usage limit"))
     }
 
     func testIncludedFractionWhenPercentsAreMissing() throws {
         let snapshot = try CursorUsageMapping.snapshot(from: Data(Self.includedOnly.utf8), fetchedAt: fetchedAt)
         XCTAssertEqual(snapshot.meters.map(\.title), ["Included"])
-        XCTAssertEqual(snapshot.meters.first?.caption, "25% used")
+        XCTAssertEqual(snapshot.meters.first?.caption, "$5.00 of $20.00")
         XCTAssertEqual(snapshot.meters.first?.fraction ?? -1, 0.25, accuracy: 0.000_001)
         XCTAssertEqual(snapshot.menuBarFraction ?? -1, 0.25, accuracy: 0.000_001)
-        XCTAssertEqual(snapshot.breakdown?.segments.map(\.title), ["Included"])
-        XCTAssertEqual(snapshot.breakdown?.segments.first?.displayValue, "$5.00")
+        XCTAssertNil(snapshot.breakdown)
+    }
+
+    func testOnDemandMeterOnlyWhenThatLimitIsEnabled() throws {
+        let enabled = try CursorUsageMapping.snapshot(from: Data(Self.onDemand.utf8), fetchedAt: fetchedAt)
+        XCTAssertEqual(enabled.meters.map(\.title), ["Included", "On-demand"])
+        XCTAssertEqual(enabled.meters.map(\.caption), ["$4.90 of $70.00", "$2.00 of $50.00"])
+        XCTAssertEqual(enabled.meters[0].fraction ?? -1, 0.07, accuracy: 0.000_001)
+        XCTAssertEqual(enabled.meters[1].fraction ?? -1, 0.04, accuracy: 0.000_001)
+
+        let disabled = try CursorUsageMapping.snapshot(from: Data(Self.onDemandDisabled.utf8), fetchedAt: fetchedAt)
+        XCTAssertEqual(disabled.meters.map(\.title), ["Included"])
+        XCTAssertEqual(disabled.meters.first?.caption, "$4.90 of $70.00")
     }
 
     func testZeroSpendDoesNotDrawABreakdown() throws {
@@ -61,7 +82,7 @@ final class CursorUsageMappingTests: XCTestCase {
 
     private static let percents = """
     {
-      "displayMessage": "Resets on Nov 1",
+      "displayMessage": "You've hit your usage limit",
       "planUsage": {
         "autoPercentUsed": 47,
         "apiPercentUsed": 12,
@@ -69,12 +90,38 @@ final class CursorUsageMappingTests: XCTestCase {
         "limit": 2000,
         "totalSpend": 3000
       },
-      "spendLimitUsage": {"individualUsed": 500}
+      "spendLimitUsage": {"individualUsed": 500, "individualLimit": 0}
+    }
+    """
+
+    private static let proPlus = """
+    {
+      "displayMessage": "You've hit your usage limit",
+      "planUsage": {
+        "autoPercentUsed": 7,
+        "apiPercentUsed": 0,
+        "includedSpend": 7000,
+        "limit": 7000
+      }
     }
     """
 
     private static let includedOnly = """
     {"planUsage":{"includedSpend":500,"limit":2000}}
+    """
+
+    private static let onDemand = """
+    {
+      "planUsage": {"includedSpend": 490, "limit": 7000},
+      "spendLimitUsage": {"individualUsed": 200, "individualLimit": 5000}
+    }
+    """
+
+    private static let onDemandDisabled = """
+    {
+      "planUsage": {"includedSpend": 490, "limit": 7000},
+      "spendLimitUsage": {"individualUsed": 0, "individualLimit": 0}
+    }
     """
 
     private static let zeros = """

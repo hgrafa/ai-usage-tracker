@@ -6,6 +6,7 @@ struct PopoverFooter: View {
     @State private var launchAtLogin = false
     @State private var suppressLaunchChange = false
     @State private var launchError: String?
+    @State private var settingsExpanded = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -19,7 +20,26 @@ struct PopoverFooter: View {
                 .disabled(model.isRefreshing)
             }
             .font(.caption)
-            DisclosureGroup("Settings") {
+            Button {
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    settingsExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: settingsExpanded ? "chevron.down" : "chevron.right")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 10)
+                    Text("Settings")
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .font(.subheadline)
+            if settingsExpanded {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Sections")
                         .font(.caption)
@@ -63,8 +83,8 @@ struct PopoverFooter: View {
                     .controlSize(.small)
                 }
                 .padding(.top, 4)
+                .font(.subheadline)
             }
-            .font(.subheadline)
         }
         .onAppear {
             launchAtLogin = LaunchAtLogin.isEnabled

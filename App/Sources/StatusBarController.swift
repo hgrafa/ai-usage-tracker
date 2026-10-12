@@ -12,8 +12,9 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     init(model: AppModel) {
         self.model = model
         super.init()
-        let hosting = NSHostingController(rootView: UsagePopover(model: model))
+        let hosting = PopoverHostingController(rootView: UsagePopover(model: model))
         hosting.sizingOptions = .preferredContentSize
+        hosting.safeAreaRegions = []
         popover.contentViewController = hosting
         popover.behavior = .transient
         popover.animates = false
@@ -33,14 +34,25 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         applyTitle()
     }
 
+    func popoverDidShow(_ notification: Notification) {
+        popover.contentViewController?.view.window?.animationBehavior = .none
+    }
+
     func popoverDidClose(_ notification: Notification) {
         statusItem.button?.highlight(false)
     }
 
     private func applyTitle() {
-        let title = MenuBarTitle.attributedTitle(for: model.menuBarReadings)
-        statusItem.length = MenuBarTitle.statusLength(for: title)
-        statusItem.button?.attributedTitle = title
+        let image = MenuBarTitle.statusImage(for: model.menuBarReadings)
+        statusItem.length = max(image.size.width, 28)
+        guard let button = statusItem.button else { return }
+        button.image = image
+        button.imageScaling = .scaleNone
+        button.imagePosition = .imageOnly
+        button.title = ""
+        button.attributedTitle = NSAttributedString(string: "")
+        let label = model.menuBarReadings.map(MenuBarLabel.itemLabel).joined(separator: ", ")
+        button.setAccessibilityLabel(label.isEmpty ? "AI Usage" : label)
     }
 
     @objc private func togglePopover(_ sender: NSStatusBarButton) {
@@ -51,5 +63,12 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         sender.highlight(true)
         popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
+    }
+}
+
+private final class PopoverHostingController<Content: View>: NSHostingController<Content> {
+    override func viewDidLayout() {
+        super.viewDidLayout()
+        view.window?.animationBehavior = .none
     }
 }

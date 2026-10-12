@@ -16,6 +16,7 @@ struct MeterRow: View {
                 .foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
+        .geometryGroup()
     }
 }
 

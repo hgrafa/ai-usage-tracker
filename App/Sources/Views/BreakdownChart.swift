@@ -47,6 +47,7 @@ struct BreakdownChart: View {
                 .font(.caption)
             }
         }
+        .geometryGroup()
     }
 
     private var showsBar: Bool {

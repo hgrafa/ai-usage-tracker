@@ -25,6 +25,14 @@ enum UsageFormatting {
         return caption
     }
 
+    static func deadline(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+
     static func resetHint(_ date: Date, now: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = .current
