@@ -6,7 +6,7 @@ AI Usage is a macOS menu-bar app that shows how much of your Claude, Codex, Curs
 
 The app needs macOS 15 or later. Download [AI-Usage.dmg](https://github.com/hgrafa/ai-usage-widget/releases/latest/download/AI-Usage.dmg) from the [latest release](https://github.com/hgrafa/ai-usage-widget/releases/latest), open it, and drag AI Usage into Applications.
 
-The build is ad-hoc signed, so the first launch is blocked by Gatekeeper. In Applications, right-click AI Usage, choose Open, then Open again. After that it stays in the menu bar. There is no Dock icon.
+The build is ad-hoc signed, so the first launch is blocked by Gatekeeper. Open AI Usage once, then go to System Settings › Privacy & Security and choose Open Anyway. After that it stays in the menu bar. There is no Dock icon.
 
 A product page lives in [`docs/`](docs/index.html). GitHub Pages serves it from the `docs` folder on `main` (repository Settings → Pages → Deploy from a branch).
 
