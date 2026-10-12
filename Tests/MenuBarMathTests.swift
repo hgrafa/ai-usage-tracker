@@ -19,6 +19,39 @@ final class MenuBarMathTests: XCTestCase {
         XCTAssertEqual(MenuBarMath.percent(from: phases), 0)
         XCTAssertEqual(MenuBarLabel.title(percent: 0), "0%")
         XCTAssertNil(MenuBarLabel.title(percent: nil))
+        XCTAssertEqual(MenuBarLabel.valueTitle(percent: nil), "–")
+    }
+
+    func testMenuBarShowsEachVisibleProvider() {
+        let phases: [ProviderID: ProviderPhase] = [
+            .claude: .loaded(snapshot(.claude, fraction: 0)),
+            .codex: .loaded(snapshot(.codex, fraction: 0.42)),
+            .cursor: .loaded(snapshot(.cursor, fraction: 0.91)),
+            .grok: .failed(message: "offline", stale: snapshot(.grok, fraction: 0.1))
+        ]
+        let readings = MenuBarMath.readings(in: phases, visible: [.claude, .codex, .grok])
+        XCTAssertEqual(readings.map(\.provider), [.claude, .codex, .grok])
+        XCTAssertEqual(readings.map(\.percent), [0, 42, 10])
+        XCTAssertEqual(MenuBarLabel.itemLabel(readings[0]), "Claude 0 percent")
+        XCTAssertEqual(MenuBarLabel.itemLabel(MenuBarReading(provider: .cursor, percent: nil)), "Cursor, no reading")
+    }
+
+    @MainActor
+    func testMenuBarTitleKeepsEveryIconAndPercent() {
+        let readings = [
+            MenuBarReading(provider: .claude, percent: 0),
+            MenuBarReading(provider: .codex, percent: 12),
+            MenuBarReading(provider: .cursor, percent: nil),
+            MenuBarReading(provider: .grok, percent: 80)
+        ]
+        let title = MenuBarTitle.attributedTitle(for: readings)
+        let raw = title.string
+        XCTAssertEqual(raw.components(separatedBy: "\u{FFFC}").count - 1, 4)
+        XCTAssertTrue(raw.contains("0%"))
+        XCTAssertTrue(raw.contains("12%"))
+        XCTAssertTrue(raw.contains("–"))
+        XCTAssertTrue(raw.contains("80%"))
+        XCTAssertGreaterThan(MenuBarTitle.statusLength(for: title), 80)
     }
 
     func testNilWhenNoRealFraction() {
@@ -46,6 +79,23 @@ final class MenuBarMathTests: XCTestCase {
             snapshot(.cursor, fraction: 0.25)
         ]
         XCTAssertEqual(MenuBarMath.percent(from: snapshots), 25)
+    }
+
+    func testEnabledSectionsDefaultsToAllWhenUnset() {
+        let sections = EnabledSections(stored: nil)
+        XCTAssertEqual(sections.providers, Set(ProviderID.allCases))
+    }
+
+    func testEnabledSectionsKeepsAnEmptyChoice() {
+        let sections = EnabledSections(stored: [])
+        XCTAssertTrue(sections.providers.isEmpty)
+        XCTAssertEqual(sections.stored, [])
+    }
+
+    func testEnabledSectionsDropsUnknownNames() {
+        let sections = EnabledSections(stored: ["claude", "nope", "grok"])
+        XCTAssertEqual(sections.providers, [.claude, .grok])
+        XCTAssertEqual(sections.stored, ["claude", "grok"])
     }
 
     func testHeatThresholds() {

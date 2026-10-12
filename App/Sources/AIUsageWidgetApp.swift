@@ -2,14 +2,24 @@ import SwiftUI
 
 @main
 struct AIUsageWidgetApp: App {
-    @StateObject private var model = AppModel()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @State private var inserted = false
 
     var body: some Scene {
-        MenuBarExtra {
-            UsagePopover(model: model)
+        // The visible item is the status bar controller. This scene only keeps the app alive.
+        MenuBarExtra(isInserted: $inserted) {
+            EmptyView()
         } label: {
-            MenuBarLabel(percent: model.menuBarPercent)
+            EmptyView()
         }
-        .menuBarExtraStyle(.window)
+    }
+}
+
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var statusBar: StatusBarController?
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        guard !AppModel.isRunningUnderTest else { return }
+        statusBar = StatusBarController(model: AppModel())
     }
 }
