@@ -5,31 +5,48 @@ import Foundation
 final class AppModel: ObservableObject {
     @Published private(set) var phases: [ProviderID: ProviderPhase]
     @Published private(set) var savedSecretProviders: Set<ProviderID> = []
+    @Published private(set) var enabledProviders: Set<ProviderID>
     @Published private(set) var isRefreshing = false
     @Published private(set) var lastRefreshAt: Date?
 
     static let autoRefreshInterval: TimeInterval = 10 * 60
     static let staleInterval: TimeInterval = 60
+    static let enabledSectionsKey = "enabledProviders"
 
-    var menuBarPercent: Int? {
-        MenuBarMath.percent(from: phases)
+    var menuBarReadings: [MenuBarReading] {
+        MenuBarMath.readings(in: phases, visible: visibleProviders)
     }
 
     var latestFetchedAt: Date? {
-        MenuBarMath.snapshots(from: phases).map(\.fetchedAt).max()
+        MenuBarMath.snapshots(from: visiblePhases).map(\.fetchedAt).max()
+    }
+
+    var visibleProviders: [ProviderID] {
+        ProviderID.allCases.filter { enabledProviders.contains($0) }
+    }
+
+    private var visiblePhases: [ProviderID: ProviderPhase] {
+        phases.filter { enabledProviders.contains($0.key) }
     }
 
     private let store: KeychainCredentialStore
     private let tokens: CursorAccessTokenProvider
     private let registry: FetcherRegistry
+    private let defaults: UserDefaults
     private var refreshTask: Task<Void, Never>?
     private var refreshAgain = false
     private var autoRefreshTask: Task<Void, Never>?
 
-    init(store: KeychainCredentialStore = KeychainCredentialStore(), locator: CursorSessionLocator = CursorSessionLocator()) {
+    init(
+        store: KeychainCredentialStore = KeychainCredentialStore(),
+        locator: CursorSessionLocator = CursorSessionLocator(),
+        defaults: UserDefaults = .standard
+    ) {
         self.store = store
         self.tokens = CursorAccessTokenProvider(locator: locator, store: store)
         self.registry = FetcherRegistry(store: store, locator: locator)
+        self.defaults = defaults
+        enabledProviders = EnabledSections(stored: defaults.stringArray(forKey: Self.enabledSectionsKey)).providers
         if Self.isRunningUnderTest {
             phases = Dictionary(uniqueKeysWithValues: ProviderID.allCases.map { ($0, ProviderPhase.unconfigured) })
         } else {
@@ -68,6 +85,25 @@ final class AppModel: ObservableObject {
             return
         }
         refresh()
+    }
+
+    func isSectionEnabled(_ provider: ProviderID) -> Bool {
+        enabledProviders.contains(provider)
+    }
+
+    func setSectionEnabled(_ provider: ProviderID, enabled: Bool) {
+        var next = enabledProviders
+        if enabled {
+            next.insert(provider)
+        } else {
+            next.remove(provider)
+        }
+        guard next != enabledProviders else { return }
+        enabledProviders = next
+        defaults.set(EnabledSections(providers: next).stored, forKey: Self.enabledSectionsKey)
+        if enabled {
+            refresh()
+        }
     }
 
     func removeSecret(for provider: ProviderID) {
@@ -113,9 +149,10 @@ final class AppModel: ObservableObject {
             configured.append(.cursor)
             configured.append(.grok)
         }
+        configured = configured.filter { enabledProviders.contains($0) }
 
         var stale: [ProviderID: UsageSnapshot] = [:]
-        for provider in ProviderID.allCases {
+        for provider in ProviderID.allCases where enabledProviders.contains(provider) {
             if configured.contains(provider) {
                 if let previous = MenuBarMath.snapshot(for: provider, in: phases) {
                     stale[provider] = previous
@@ -162,7 +199,7 @@ final class AppModel: ObservableObject {
         text.split(whereSeparator: \.isNewline).first.map(String.init) ?? text
     }
 
-    private static var isRunningUnderTest: Bool {
+    static var isRunningUnderTest: Bool {
         if NSClassFromString("XCTestCase") != nil { return true }
         let environment = ProcessInfo.processInfo.environment
         return environment["XCTestConfigurationFilePath"] != nil || environment["XCInjectBundleInto"] != nil

@@ -11,8 +11,12 @@ struct ProviderSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(provider.displayName)
-                .font(.headline)
+            HStack(spacing: 6) {
+                ProviderMark(provider: provider)
+                    .frame(width: 14, height: 14)
+                Text(provider.displayName)
+                    .font(.headline)
+            }
             content
             if showsSecretControls {
                 secretControls

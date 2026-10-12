@@ -8,17 +8,24 @@ struct UsagePopover: View {
             Text("AI Usage")
                 .font(.title3.weight(.semibold))
                 .padding(.bottom, 4)
-            ForEach(Array(ProviderID.allCases.enumerated()), id: \.element) { index, provider in
-                if index > 0 {
-                    Divider()
+            if model.visibleProviders.isEmpty {
+                Text("No sections. Turn one on in Settings.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 12)
+            } else {
+                ForEach(Array(model.visibleProviders.enumerated()), id: \.element) { index, provider in
+                    if index > 0 {
+                        Divider()
+                    }
+                    ProviderSection(
+                        provider: provider,
+                        phase: model.phases[provider] ?? .unconfigured,
+                        hasSavedSecret: model.savedSecretProviders.contains(provider),
+                        onSave: { model.saveSecret(for: provider, value: $0) },
+                        onRemove: { model.removeSecret(for: provider) }
+                    )
                 }
-                ProviderSection(
-                    provider: provider,
-                    phase: model.phases[provider] ?? .unconfigured,
-                    hasSavedSecret: model.savedSecretProviders.contains(provider),
-                    onSave: { model.saveSecret(for: provider, value: $0) },
-                    onRemove: { model.removeSecret(for: provider) }
-                )
             }
             Divider()
                 .padding(.bottom, 8)

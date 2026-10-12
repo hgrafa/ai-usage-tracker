@@ -21,6 +21,17 @@ struct PopoverFooter: View {
             .font(.caption)
             DisclosureGroup("Settings") {
                 VStack(alignment: .leading, spacing: 8) {
+                    Text("Sections")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    ForEach(ProviderID.allCases) { provider in
+                        Toggle(provider.displayName, isOn: Binding(
+                            get: { model.isSectionEnabled(provider) },
+                            set: { model.setSectionEnabled(provider, enabled: $0) }
+                        ))
+                        .toggleStyle(.checkbox)
+                    }
+                    Divider()
                     Toggle("Launch at login", isOn: $launchAtLogin)
                         .onChange(of: launchAtLogin) { _, newValue in
                             guard !suppressLaunchChange else {

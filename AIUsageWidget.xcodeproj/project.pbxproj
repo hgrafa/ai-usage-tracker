@@ -30,6 +30,7 @@
 		8D63EAC25D7A061F91457FBF /* UsageFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8AB3EAF4AC117DFF8E723DF /* UsageFetcher.swift */; };
 		93C548227FC10FB430B98EDD /* CredentialStoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53CC1A3601BD8635D2070F90 /* CredentialStoring.swift */; };
 		9639547F6461F2156E7CBD25 /* CodexUsageFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7CBFAFA310F5F48EF4644A /* CodexUsageFetcher.swift */; };
+		A9BD70E1D7B553086BF2E84A /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9777D000285D0A5B8992A825 /* StatusBarController.swift */; };
 		AB6499B06FB764E18393E31B /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A841F74A2821C84FD72190 /* LaunchAtLogin.swift */; };
 		B2E4B18A3EBF07D614A3E0DE /* CodexUsageMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E9DD899B30A5843CC13A028 /* CodexUsageMappingTests.swift */; };
 		B7BA02A75B45D43BBD460D1A /* SessionAndTokenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4441CED4DFD0797D209C576E /* SessionAndTokenTests.swift */; };
@@ -84,6 +85,7 @@
 		851C0503B661EF3C14745E3D /* GrokUsageMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrokUsageMappingTests.swift; sourceTree = "<group>"; };
 		8938B7E00D7C07DAEED49D8D /* PopoverFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverFooter.swift; sourceTree = "<group>"; };
 		8FF17ADCFAF3E88A18BF1581 /* MeterRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeterRow.swift; sourceTree = "<group>"; };
+		9777D000285D0A5B8992A825 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		A8AB3EAF4AC117DFF8E723DF /* UsageFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageFetcher.swift; sourceTree = "<group>"; };
 		AB4100DFD023216DB068572D /* MenuBarLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLabel.swift; sourceTree = "<group>"; };
 		B7157E1462A082CB7E8552A2 /* ClaudeUsageFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageFetcher.swift; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 				E3A12DEC93D6931730F178C8 /* AIUsageWidgetApp.swift */,
 				FD2FF9F7E8316E717D9200AB /* AppModel.swift */,
 				AB4100DFD023216DB068572D /* MenuBarLabel.swift */,
+				9777D000285D0A5B8992A825 /* StatusBarController.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -342,6 +345,7 @@
 				8005C53121708B63D6B60C1E /* ProviderID.swift in Sources */,
 				6D0E58DB1531E36A92295340 /* ProviderSection.swift in Sources */,
 				CD712C84A9CA05CB667D354E /* ProviderState.swift in Sources */,
+				A9BD70E1D7B553086BF2E84A /* StatusBarController.swift in Sources */,
 				3E42E717D6EFA16BD5862508 /* Theme.swift in Sources */,
 				F9903FFBE8178F1FAA130392 /* UsageFetchError.swift in Sources */,
 				8D63EAC25D7A061F91457FBF /* UsageFetcher.swift in Sources */,
