@@ -13,8 +13,10 @@ struct CodexAppServerClient: Sendable {
     """
 
     func rateLimitsResult() async throws -> Data {
+        let environment = ProcessInfo.processInfo.environment
         guard let executable = CodexExecutable.resolve(
-            pathEnvironment: ProcessInfo.processInfo.environment["PATH"],
+            pathEnvironment: environment["PATH"],
+            homeDirectory: environment["HOME"],
             isExecutable: { FileManager.default.isExecutableFile(atPath: $0) }
         ) else {
             throw UsageFetchError.message(Self.missingCLIMessage)
