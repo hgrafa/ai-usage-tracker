@@ -1,0 +1,64 @@
+name: AIUsageWidget
+options:
+  bundleIdPrefix: dev.hgrafa
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "15.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    ENABLE_HARDENED_RUNTIME: YES
+    ENABLE_APP_SANDBOX: NO
+    SWIFT_STRICT_CONCURRENCY: complete
+targets:
+  AIUsageWidget:
+    type: application
+    platform: macOS
+    sources:
+      - path: App/Sources
+    settings:
+      base:
+        PRODUCT_NAME: "AI Usage"
+        PRODUCT_BUNDLE_IDENTIFIER: dev.hgrafa.ai-usage-widget
+        PRODUCT_MODULE_NAME: AIUsageWidget
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "AI Usage"
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_ENTITLEMENTS: App/AIUsageWidget.entitlements
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+  AIUsageWidgetTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: AIUsageWidget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.hgrafa.ai-usage-widget.tests
+        GENERATE_INFOPLIST_FILE: YES
+        ENABLE_APP_SANDBOX: NO
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AI Usage.app/Contents/MacOS/AI Usage"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  AIUsageWidget:
+    build:
+      targets:
+        AIUsageWidget: all
+        AIUsageWidgetTests: [test]
+    test:
+      targets:
+        - AIUsageWidgetTests
+    run:
+      config: Debug

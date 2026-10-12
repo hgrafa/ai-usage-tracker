@@ -1,0 +1,76 @@
+import AppKit
+import SwiftUI
+
+struct PopoverFooter: View {
+    @ObservedObject var model: AppModel
+    @State private var launchAtLogin = false
+    @State private var suppressLaunchChange = false
+    @State private var launchError: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                updatedLabel
+                Spacer()
+                Button("Refresh") {
+                    model.refresh()
+                }
+                .controlSize(.small)
+                .disabled(model.isRefreshing)
+            }
+            .font(.caption)
+            DisclosureGroup("Settings") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle("Launch at login", isOn: $launchAtLogin)
+                        .onChange(of: launchAtLogin) { _, newValue in
+                            guard !suppressLaunchChange else {
+                                suppressLaunchChange = false
+                                return
+                            }
+                            do {
+                                try LaunchAtLogin.setEnabled(newValue)
+                                launchError = nil
+                                let enabled = LaunchAtLogin.isEnabled
+                                if enabled != newValue {
+                                    suppressLaunchChange = true
+                                    launchAtLogin = enabled
+                                }
+                            } catch {
+                                suppressLaunchChange = true
+                                launchAtLogin = LaunchAtLogin.isEnabled
+                                launchError = "Launch at login could not be changed."
+                            }
+                        }
+                    if let launchError {
+                        Text(launchError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                    Button("Quit") {
+                        NSApplication.shared.terminate(nil)
+                    }
+                    .controlSize(.small)
+                }
+                .padding(.top, 4)
+            }
+            .font(.subheadline)
+        }
+        .onAppear {
+            launchAtLogin = LaunchAtLogin.isEnabled
+        }
+    }
+
+    @ViewBuilder
+    private var updatedLabel: some View {
+        if let date = model.latestFetchedAt {
+            HStack(spacing: 4) {
+                Text("Updated")
+                Text(date, style: .relative)
+            }
+            .foregroundStyle(.secondary)
+        } else {
+            Text("Not updated yet")
+                .foregroundStyle(.secondary)
+        }
+    }
+}
