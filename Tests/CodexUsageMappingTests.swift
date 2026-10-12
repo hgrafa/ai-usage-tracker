@@ -51,6 +51,18 @@ final class CodexUsageMappingTests: XCTestCase {
         XCTAssertFalse(CodexStdoutParser.sawFailure(in: Data(#"{"id":1"#.utf8)))
     }
 
+    func testPrefersOfficialInstallWhenAppPathCannotSeeIt() {
+        let home = "/Users/me"
+        let official = "\(home)/.local/bin/codex"
+        let homebrew = "/opt/homebrew/bin/codex"
+        let resolved = CodexExecutable.resolve(
+            pathEnvironment: "/usr/bin:/bin:/usr/sbin:/sbin",
+            homeDirectory: home,
+            isExecutable: { $0 == official || $0 == homebrew }
+        )
+        XCTAssertEqual(resolved?.path, official)
+    }
+
     func testExecutableLookupOrder() {
         let homebrew = CodexExecutable.resolve(pathEnvironment: "/usr/bin:/bin", isExecutable: { $0 == "/opt/homebrew/bin/codex" })
         XCTAssertEqual(homebrew?.path, "/opt/homebrew/bin/codex")
