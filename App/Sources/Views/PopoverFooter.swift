@@ -7,6 +7,8 @@ struct PopoverFooter: View {
     @State private var suppressLaunchChange = false
     @State private var launchError: String?
     @State private var settingsExpanded = false
+    @State private var checkingUpdate = false
+    @State private var updateOutcome: UpdateCheckOutcome?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -77,6 +79,8 @@ struct PopoverFooter: View {
                             .font(.caption)
                             .foregroundStyle(.red)
                     }
+                    Divider()
+                    updateControls
                     Button("Quit") {
                         NSApplication.shared.terminate(nil)
                     }
@@ -88,6 +92,62 @@ struct PopoverFooter: View {
         }
         .onAppear {
             launchAtLogin = LaunchAtLogin.isEnabled
+        }
+    }
+
+    private var updateControls: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Button(checkingUpdate ? "Checking…" : "Check for Updates") {
+                    checkForUpdates()
+                }
+                .disabled(checkingUpdate)
+                .controlSize(.small)
+                Spacer()
+                Text("Version \(AppUpdate.currentVersion())")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            updateDetail
+        }
+    }
+
+    @ViewBuilder
+    private var updateDetail: some View {
+        switch updateOutcome {
+        case .none:
+            EmptyView()
+        case .upToDate:
+            Text("You're on the latest version.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        case .available(let release):
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Version \(release.version) is available.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("Download Update") {
+                    NSWorkspace.shared.open(release.downloadURL)
+                }
+                .controlSize(.small)
+            }
+        case .noRelease:
+            Text("No release has been published yet.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        case .failed:
+            Text("Couldn't check for updates.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func checkForUpdates() {
+        checkingUpdate = true
+        Task {
+            let outcome = await UpdateChecker.check(current: AppUpdate.currentVersion())
+            updateOutcome = outcome
+            checkingUpdate = false
         }
     }
 

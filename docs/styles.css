@@ -1,0 +1,424 @@
+:root {
+  color-scheme: dark;
+  --bg: #1c1c1f;
+  --bar: #2a2a2e;
+  --strip: #222226;
+  --text: #f4f4f5;
+  --muted: #a1a1aa;
+  --line: rgba(255, 255, 255, 0.08);
+  --hot: #fa9e40;
+  --here: #5ccc7a;
+  --display: "Fraunces", "Iowan Old Style", Palatino, serif;
+  --ui: "Atkinson Hyperlegible", "Avenir Next", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ui);
+  font-size: 17px;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(244, 244, 245, 0.22);
+  color: var(--text);
+}
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+
+.skip {
+  position: absolute;
+  left: 12px;
+  top: -40px;
+  z-index: 10;
+  padding: 6px 10px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skip:focus {
+  top: 36px;
+}
+
+h1,
+h2,
+.providers dt,
+.n {
+  font-family: var(--display);
+  font-optical-sizing: auto;
+  font-weight: 560;
+  font-synthesis: none;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(3.4rem, 8vw, 6rem);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  font-variation-settings: "SOFT" 20, "opsz" 144, "wght" 560;
+}
+
+h2 {
+  margin: 0 0 0.7rem;
+  font-size: 1.85rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variation-settings: "SOFT" 20, "opsz" 72, "wght" 560;
+}
+
+p {
+  margin: 0;
+}
+
+code {
+  font-family: inherit;
+  font-size: 0.95em;
+  color: var(--text);
+}
+
+.wrap {
+  width: min(40rem, calc(100% - 2.5rem));
+  margin-inline: auto;
+}
+
+.mark {
+  display: block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.logo {
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin: 0 0 1.35rem;
+}
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 28px;
+  padding: 0 12px;
+  background: var(--bar);
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.bar-lead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.app {
+  font-weight: 700;
+}
+
+.menus {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+}
+
+.menus a {
+  color: var(--text);
+  text-decoration: none;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.menus a:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.status li {
+  color: var(--muted);
+}
+
+.status .pct {
+  color: var(--text);
+}
+
+.status .hot .pct {
+  color: var(--hot);
+}
+
+.hero {
+  padding: 4.5rem 0 3.4rem;
+}
+
+.sub {
+  margin-top: 1.2rem;
+  max-width: 18em;
+  color: var(--muted);
+  font-size: 1.3rem;
+  line-height: 1.35;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.2rem;
+  margin-top: 1.7rem;
+}
+
+.download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 11px;
+  border: 1px solid #d4d4d8;
+  border-radius: 5px;
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--ui);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.download:hover {
+  background: #ffffff;
+}
+
+.download:active {
+  background: #e4e4e7;
+}
+
+.notes {
+  color: var(--muted);
+  font-size: 13px;
+  text-underline-offset: 0.2em;
+}
+
+.notes:hover {
+  color: var(--text);
+}
+
+.fine {
+  margin-top: 0.85rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.install {
+  background: var(--strip);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 2.3rem 0 2.45rem;
+}
+
+.warn {
+  max-width: 38em;
+  color: var(--text);
+}
+
+.steps {
+  list-style: none;
+  margin: 1.35rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.05rem;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr;
+  column-gap: 0.7rem;
+  align-items: baseline;
+}
+
+.steps p {
+  margin: 0;
+}
+
+.n {
+  font-size: 1.45rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variation-settings: "SOFT" 20, "opsz" 48, "wght" 560;
+}
+
+.steps a {
+  color: var(--text);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+.shows {
+  padding: 2.8rem 0 0.5rem;
+}
+
+.lede {
+  max-width: 34em;
+  color: var(--muted);
+}
+
+.providers {
+  margin: 1.15rem 0 0;
+}
+
+.providers div {
+  padding: 1rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.providers div:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.providers dt {
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-variation-settings: "SOFT" 20, "opsz" 36, "wght" 560;
+}
+
+.providers dd {
+  margin: 0.28rem 0 0;
+  color: var(--muted);
+  max-width: 38em;
+}
+
+.privacy {
+  margin: 1.7rem 0 0;
+  max-width: 34em;
+  color: var(--muted);
+}
+
+.here {
+  color: var(--here);
+  font-weight: 700;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.25rem;
+  padding-top: 2.4rem;
+  padding-bottom: 2.6rem;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.foot a {
+  color: var(--text);
+  text-underline-offset: 0.18em;
+}
+
+#install,
+#shows {
+  scroll-margin-top: 40px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  main {
+    animation: rise 420ms ease both;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .download {
+    height: 36px;
+    padding: 0 14px;
+  }
+}
+
+@media (max-width: 760px) {
+  .menus {
+    display: none;
+  }
+
+  .hero {
+    padding: 3rem 0 2.5rem;
+  }
+
+  .sub {
+    font-size: 1.12rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .app {
+    display: none;
+  }
+
+  .status {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .status {
+    gap: 10px;
+    font-size: 12px;
+  }
+}

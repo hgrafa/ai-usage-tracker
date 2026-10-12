@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Usage — How much is left.</title>
+  <meta name="description" content="A macOS menu-bar app that shows how much of your Claude, Codex, Cursor, and Grok Bot allowances you have used.">
+  <meta name="theme-color" content="#2A2A2E">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:SOFT,opsz,wght@0..100,9..144,500..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+
+  <header class="bar">
+    <div class="bar-lead">
+      <img class="mark" src="icon-512.png" width="16" height="16" alt="">
+      <span class="app">AI Usage</span>
+      <nav class="menus" aria-label="On this page">
+        <a href="#install">Install</a>
+        <a href="#shows">Providers</a>
+      </nav>
+    </div>
+    <ul class="status" aria-label="Sample menu bar reading">
+      <li><span class="name">Claude</span> <span class="pct">42%</span></li>
+      <li><span class="name">Codex</span> <span class="pct">18%</span></li>
+      <li class="hot"><span class="name">Cursor</span> <span class="pct">71%</span></li>
+      <li><span class="name">Grok</span> <span class="pct">9%</span></li>
+    </ul>
+  </header>
+
+  <main id="content">
+    <section class="hero">
+      <div class="wrap">
+        <img class="logo" src="icon-512.png" width="96" height="96" alt="AI Usage">
+        <h1>How much<br>is left.</h1>
+        <p class="sub">Claude, Codex, Cursor, and Grok Bot, in the menu bar.</p>
+        <div class="actions">
+          <a class="download" data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest">Download for Mac</a>
+          <a class="notes" href="https://github.com/hgrafa/ai-usage-widget/releases/latest">Release notes</a>
+        </div>
+        <p class="fine">macOS 15 or later. Free, open source.<span data-version></span></p>
+      </div>
+    </section>
+
+    <section class="install" id="install" aria-labelledby="install-title">
+      <div class="wrap">
+        <h2 id="install-title">Install</h2>
+        <p class="warn">The app is ad-hoc signed and not notarized, so macOS Gatekeeper will block a normal double-click the first time.</p>
+        <ol class="steps">
+          <li>
+            <span class="n">1</span>
+            <p><a data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest">Download AI-Usage.dmg</a>.</p>
+          </li>
+          <li>
+            <span class="n">2</span>
+            <p>Open the disk image and drag AI Usage into the Applications folder.</p>
+          </li>
+          <li>
+            <span class="n">3</span>
+            <p>In Applications, right-click AI Usage and choose Open, then Open again in the dialog. After that it launches normally from the menu bar (no Dock icon).</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="shows" id="shows" aria-labelledby="shows-title">
+      <div class="wrap">
+        <h2 id="shows-title">What it shows</h2>
+        <p class="lede">A percent in the menu bar for each provider you leave enabled.</p>
+        <dl class="providers">
+          <div>
+            <dt>Claude</dt>
+            <dd>How much of your Claude allowance you have used, with the session cookie stored in the Mac Keychain.</dd>
+          </div>
+          <div>
+            <dt>Codex</dt>
+            <dd>How much of your Codex allowance you have used, read from a local <code>codex login</code>.</dd>
+          </div>
+          <div>
+            <dt>Cursor</dt>
+            <dd>How much of your Cursor allowance you have used, with an optional token stored in the Mac Keychain.</dd>
+          </div>
+          <div>
+            <dt>Grok Bot</dt>
+            <dd>How much of your Grok Bot allowance you have used, reusing the Cursor login.</dd>
+          </div>
+        </dl>
+        <p class="privacy">Secrets stay in the Keychain <strong class="here">on this Mac</strong>. Nothing is sent to the author.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <span class="brand">
+        <img class="mark" src="icon-512.png" width="16" height="16" alt="">
+        AI Usage
+      </span>
+      <a href="https://github.com/hgrafa/ai-usage-widget">GitHub</a>
+      <span>macOS 15+</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var slot = document.querySelector("[data-version]");
+      if (!slot || !window.fetch) return;
+      fetch("https://api.github.com/repos/hgrafa/ai-usage-widget/releases/latest")
+        .then(function (response) {
+          if (!response.ok) throw new Error("release");
+          return response.json();
+        })
+        .then(function (release) {
+          if (!release) return;
+          var assets = release.assets || [];
+          var disk = null;
+          for (var i = 0; i < assets.length; i++) {
+            if (assets[i].name === "AI-Usage.dmg") disk = assets[i];
+          }
+          if (disk && disk.browser_download_url) {
+            document.querySelectorAll("[data-download]").forEach(function (link) {
+              link.href = disk.browser_download_url;
+            });
+          }
+          if (slot && release.tag_name) slot.textContent = " \u00b7 " + release.tag_name;
+        })
+        .catch(function () {});
+    })();
+  </script>
+</body>
+</html>
