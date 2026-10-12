@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: >
+          xcodebuild
+          -scheme AIUsageWidget
+          -destination 'platform=macOS'
+          -derivedDataPath .build
+          test
+          CODE_SIGN_IDENTITY="-"
+          CODE_SIGN_STYLE=Manual
