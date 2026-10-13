@@ -15,4 +15,11 @@ final class AppUpdateTests: XCTestCase {
         let key = try XCTUnwrap(bundle.object(forInfoDictionaryKey: "SUPublicEDKey") as? String)
         XCTAssertEqual(Data(base64Encoded: key)?.count, 32)
     }
+
+    /// Ad-hoc builds have no Team ID, so the hardened runtime refuses to load Sparkle.framework without this.
+    func testAppCanLoadEmbeddedFrameworksWithoutATeamID() throws {
+        let task = try XCTUnwrap(SecTaskCreateFromSelf(nil))
+        let value = SecTaskCopyValueForEntitlement(task, "com.apple.security.cs.disable-library-validation" as CFString, nil)
+        XCTAssertEqual(value as? Bool, true)
+    }
 }
