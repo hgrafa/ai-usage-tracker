@@ -636,37 +636,6 @@ a {
   }
 }
 
-/* Menu bar examples */
-
-.looks {
-  padding: 4rem 0 2rem;
-}
-
-.slices {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2.2rem 2rem;
-}
-
-.slices figure {
-  margin: 0;
-}
-
-.slice-wide {
-  grid-column: 1 / -1;
-}
-
-.screen-slice {
-  border-radius: 12px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.09), 0 30px 60px -40px rgba(0, 0, 0, 0.9);
-}
-
-.slices figcaption {
-  margin-top: 0.75rem;
-  color: var(--muted);
-  font-size: 15px;
-}
-
 /* Try it */
 
 .try {
@@ -1094,7 +1063,6 @@ a {
   text-underline-offset: 0.18em;
 }
 
-#looks,
 #try,
 #install {
   scroll-margin-top: 64px;
@@ -1135,10 +1103,6 @@ a {
 
   .sub {
     font-size: 1.12rem;
-  }
-
-  .slices {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .screen {

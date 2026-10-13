@@ -71,14 +71,6 @@
     }).join("");
   }
 
-  function statusLabel(readings) {
-    if (!readings.length) return "AI Usage, no sections";
-    return readings.map(function (r) {
-      var name = PROVIDERS[r[0]].name;
-      return r[1] == null ? name + ", no reading" : name + " " + Math.round(r[1]) + " percent";
-    }).join(", ");
-  }
-
   function meterHTML(meter, value) {
     var percent = Math.round(value * meter[1]);
     return '<div class="m"><div class="m-t">' + meter[0] + '</div>' +
@@ -124,13 +116,12 @@
 
   function buildScreen(el) {
     var kind = el.dataset.screen;
-    var menus = kind === "slice" ? "" :
-      "<b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>";
+    var menus = "<b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>";
     el.innerHTML =
       '<div class="screen-inner"><div class="wall"></div>' +
       '<div class="mb"><div class="mb-left">' + menus + "</div>" +
       '<div class="mb-right"><span class="si" data-si></span>' + SYS + '<span class="clock" data-clock></span></div></div>' +
-      (kind === "slice" ? "" : '<div class="pop" data-pop><span class="pop-arrow"></span><div class="pop-body" data-body></div></div>') +
+      '<div class="pop" data-pop><span class="pop-arrow"></span><div class="pop-body" data-body></div></div>' +
       (kind === "hero" ? POINTER : "") +
       "</div>";
     var screen = {
@@ -153,7 +144,6 @@
   function render(screen, state) {
     screen.inner.classList.toggle("light", state.theme === "light");
     screen.si.innerHTML = statusItemHTML(state.readings);
-    if (screen.kind === "slice") screen.el.setAttribute("aria-label", statusLabel(state.readings));
     if (screen.body) screen.body.innerHTML = popoverHTML(state.readings);
     place(screen);
   }
@@ -185,14 +175,6 @@
     }
     screen.inner.style.height = height + "px";
     screen.el.style.height = height * screen.scale + "px";
-  }
-
-  function readingsFrom(list) {
-    if (!list) return [];
-    return list.split(",").map(function (pair) {
-      var parts = pair.split(":");
-      return [parts[0], parts[1] === "-" ? null : +parts[1]];
-    });
   }
 
   function wait(ms) {
@@ -277,12 +259,6 @@
           );
         });
     }
-  }
-
-  function slice(el) {
-    var screen = buildScreen(el);
-    fit(screen);
-    render(screen, { theme: el.dataset.theme, readings: readingsFrom(el.dataset.readings) });
   }
 
   var PRESETS = {
@@ -385,7 +361,6 @@
   }
 
   function start() {
-    document.querySelectorAll('[data-screen="slice"]').forEach(slice);
     var heroEl = document.querySelector('[data-screen="hero"]');
     if (heroEl) hero(heroEl);
     var studioEl = document.querySelector('[data-screen="studio"]');
