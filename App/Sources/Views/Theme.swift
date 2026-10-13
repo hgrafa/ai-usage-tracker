@@ -6,11 +6,10 @@ enum Theme {
     static let meterTrackHeight: CGFloat = 4
     static let knobSize: CGFloat = 10
     static let breakdownBarHeight: CGFloat = 8
-    static let background = Color(red: 0.11, green: 0.11, blue: 0.12)
 
     static func heatColor(for fraction: Double) -> Color {
         switch MeterHeat.level(for: fraction) {
-        case .low: .white
+        case .low: .primary
         case .warm: .orange
         case .hot: .red
         }
