@@ -27,13 +27,17 @@
 		6AFBB15B6186B5849C63277B /* StatusPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2EAD1E979A66972E08EA9C /* StatusPage.swift */; };
 		6D0E58DB1531E36A92295340 /* ProviderSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D19090893587A756417EF56 /* ProviderSection.swift */; };
 		73FEDAE496292B97F76E4C09 /* FetcherRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCF59B2BF893A885C4F8A1C8 /* FetcherRegistry.swift */; };
+		777F5677A6FA2EF943C3D2F3 /* LimitNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 729D3E9F217E910FFE5C79DB /* LimitNotifier.swift */; };
 		7E9284F7D9D8C935CDA07B65 /* ClaudeUsageFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7157E1462A082CB7E8552A2 /* ClaudeUsageFetcher.swift */; };
 		8005C53121708B63D6B60C1E /* ProviderID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4956DE4263A6AE607C2F3C55 /* ProviderID.swift */; };
 		85633A21DCDE53E0C153526E /* CredentialPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FCCBDB16C7B7951DC6CC03B /* CredentialPrompt.swift */; };
 		8D63EAC25D7A061F91457FBF /* UsageFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8AB3EAF4AC117DFF8E723DF /* UsageFetcher.swift */; };
 		93C548227FC10FB430B98EDD /* CredentialStoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53CC1A3601BD8635D2070F90 /* CredentialStoring.swift */; };
 		9639547F6461F2156E7CBD25 /* CodexUsageFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7CBFAFA310F5F48EF4644A /* CodexUsageFetcher.swift */; };
+		9D405803E243AA65B43A816A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A060FF6A639F41C2675A8DBF /* SettingsView.swift */; };
+		A53680C7AEDDA6804A3D37CE /* LimitAlertTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2180A886FC3B5C91CD6FD847 /* LimitAlertTests.swift */; };
 		A76833F8FC47E68A305C66DE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49E10F736C456268E6909DAF /* Assets.xcassets */; };
+		A9710EB6A9510A8B0289CD83 /* LimitAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 039675E97D851E9E70F10F19 /* LimitAlerts.swift */; };
 		A9BD70E1D7B553086BF2E84A /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9777D000285D0A5B8992A825 /* StatusBarController.swift */; };
 		AB6499B06FB764E18393E31B /* LaunchAtLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A841F74A2821C84FD72190 /* LaunchAtLogin.swift */; };
 		B2E4B18A3EBF07D614A3E0DE /* CodexUsageMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E9DD899B30A5843CC13A028 /* CodexUsageMappingTests.swift */; };
@@ -66,6 +70,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		039675E97D851E9E70F10F19 /* LimitAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitAlerts.swift; sourceTree = "<group>"; };
 		0B0017E26090AC180E330D8C /* UsageFetchErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageFetchErrorTests.swift; sourceTree = "<group>"; };
 		0E7541673537A63D21852D81 /* AppUpdateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateTests.swift; sourceTree = "<group>"; };
 		0E9DD899B30A5843CC13A028 /* CodexUsageMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexUsageMappingTests.swift; sourceTree = "<group>"; };
@@ -73,6 +78,7 @@
 		1C327D0D981585978FB8224A /* JSONFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONFields.swift; sourceTree = "<group>"; };
 		1DD2739CDDC79365BE56C30B /* Meter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meter.swift; sourceTree = "<group>"; };
 		20A132A668E812B1AEAB2D7C /* BlockingProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockingProcess.swift; sourceTree = "<group>"; };
+		2180A886FC3B5C91CD6FD847 /* LimitAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitAlertTests.swift; sourceTree = "<group>"; };
 		38529FBA64690EDD683D5F53 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		3CC25658E3ACB7E66DA86FE8 /* CodexAppServerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexAppServerClient.swift; sourceTree = "<group>"; };
 		40462E490215E5F2696372DE /* CursorUsageFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorUsageFetcher.swift; sourceTree = "<group>"; };
@@ -88,6 +94,7 @@
 		624674AE23E9DC10EF4D0B01 /* UsageFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageFormatting.swift; sourceTree = "<group>"; };
 		65EC8BA46D1E359CDDE2BA76 /* AIUsageWidgetTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AIUsageWidgetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FCCBDB16C7B7951DC6CC03B /* CredentialPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialPrompt.swift; sourceTree = "<group>"; };
+		729D3E9F217E910FFE5C79DB /* LimitNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitNotifier.swift; sourceTree = "<group>"; };
 		73A60D83162B6AE97BF316AA /* AIUsageWidget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIUsageWidget.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D7CBFAFA310F5F48EF4644A /* CodexUsageFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexUsageFetcher.swift; sourceTree = "<group>"; };
 		7EB5E4BDF86C7BBEF91944E5 /* Credential.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Credential.swift; sourceTree = "<group>"; };
@@ -96,6 +103,7 @@
 		8FF17ADCFAF3E88A18BF1581 /* MeterRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeterRow.swift; sourceTree = "<group>"; };
 		91D0211E95CBAE23EC484B84 /* ProviderGlyph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderGlyph.swift; sourceTree = "<group>"; };
 		9777D000285D0A5B8992A825 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		A060FF6A639F41C2675A8DBF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A8AB3EAF4AC117DFF8E723DF /* UsageFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageFetcher.swift; sourceTree = "<group>"; };
 		AB4100DFD023216DB068572D /* MenuBarLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLabel.swift; sourceTree = "<group>"; };
 		B7157E1462A082CB7E8552A2 /* ClaudeUsageFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageFetcher.swift; sourceTree = "<group>"; };
@@ -126,6 +134,15 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		2C0868167FB5FC448E9AE3D8 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				039675E97D851E9E70F10F19 /* LimitAlerts.swift */,
+				729D3E9F217E910FFE5C79DB /* LimitNotifier.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
 		36950DF8E99CCD2CEE8E1C76 /* Fetch */ = {
 			isa = PBXGroup;
 			children = (
@@ -153,6 +170,7 @@
 				0E9DD899B30A5843CC13A028 /* CodexUsageMappingTests.swift */,
 				D80D14C959112EB74FF39781 /* CursorUsageMappingTests.swift */,
 				851C0503B661EF3C14745E3D /* GrokUsageMappingTests.swift */,
+				2180A886FC3B5C91CD6FD847 /* LimitAlertTests.swift */,
 				F10B03740E5989D813F014E7 /* MenuBarMathTests.swift */,
 				4441CED4DFD0797D209C576E /* SessionAndTokenTests.swift */,
 				58A7E9C537D53A8DCE40204C /* StatusPageTests.swift */,
@@ -188,6 +206,7 @@
 				FD5608970A5DB7684C656879 /* Credentials */,
 				36950DF8E99CCD2CEE8E1C76 /* Fetch */,
 				8076454DA68DA86B57AD4E14 /* Model */,
+				2C0868167FB5FC448E9AE3D8 /* Notifications */,
 				E768707650BC2AD8590A1AEC /* Support */,
 				DC500C87F55398C5DEC2D56F /* Views */,
 				E3A12DEC93D6931730F178C8 /* AIUsageWidgetApp.swift */,
@@ -207,6 +226,7 @@
 				8FF17ADCFAF3E88A18BF1581 /* MeterRow.swift */,
 				8938B7E00D7C07DAEED49D8D /* PopoverFooter.swift */,
 				5D19090893587A756417EF56 /* ProviderSection.swift */,
+				A060FF6A639F41C2675A8DBF /* SettingsView.swift */,
 				38529FBA64690EDD683D5F53 /* Theme.swift */,
 				DA2B84045CAB5AF801456FE4 /* UsagePopover.swift */,
 			);
@@ -340,6 +360,7 @@
 				B2E4B18A3EBF07D614A3E0DE /* CodexUsageMappingTests.swift in Sources */,
 				62677FADD9821D31095ACEFF /* CursorUsageMappingTests.swift in Sources */,
 				0E5F6F727F4ABD36DBE7E0A9 /* GrokUsageMappingTests.swift in Sources */,
+				A53680C7AEDDA6804A3D37CE /* LimitAlertTests.swift in Sources */,
 				156BA78B5AEAF35D8D78D15E /* MenuBarMathTests.swift in Sources */,
 				B7BA02A75B45D43BBD460D1A /* SessionAndTokenTests.swift in Sources */,
 				CECE9573DBC7B9F00CEF184F /* StatusPageTests.swift in Sources */,
@@ -371,6 +392,8 @@
 				61219C09396D591C4C9EF69B /* JSONFields.swift in Sources */,
 				22D1575EFAB506E1BEFBFEA6 /* KeychainCredentialStore.swift in Sources */,
 				AB6499B06FB764E18393E31B /* LaunchAtLogin.swift in Sources */,
+				A9710EB6A9510A8B0289CD83 /* LimitAlerts.swift in Sources */,
+				777F5677A6FA2EF943C3D2F3 /* LimitNotifier.swift in Sources */,
 				EE9F0F2BBC558A39D4EE860A /* MenuBarLabel.swift in Sources */,
 				E947B44000BC47BABD39DDFA /* Meter.swift in Sources */,
 				B8F263D3F66C7BC3726FB949 /* MeterRow.swift in Sources */,
@@ -379,6 +402,7 @@
 				8005C53121708B63D6B60C1E /* ProviderID.swift in Sources */,
 				6D0E58DB1531E36A92295340 /* ProviderSection.swift in Sources */,
 				CD712C84A9CA05CB667D354E /* ProviderState.swift in Sources */,
+				9D405803E243AA65B43A816A /* SettingsView.swift in Sources */,
 				A9BD70E1D7B553086BF2E84A /* StatusBarController.swift in Sources */,
 				6AFBB15B6186B5849C63277B /* StatusPage.swift in Sources */,
 				3E42E717D6EFA16BD5862508 /* Theme.swift in Sources */,

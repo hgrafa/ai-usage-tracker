@@ -2,35 +2,28 @@ import SwiftUI
 
 struct UsagePopover: View {
     @ObservedObject var model: AppModel
+    @State private var showingSettings = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("AI Usage")
-                .font(.title3.weight(.semibold))
-                .padding(.bottom, 4)
-            if model.visibleProviders.isEmpty {
-                Text("No sections. Turn one on in Settings.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.vertical, 12)
-            } else {
-                ForEach(Array(model.visibleProviders.enumerated()), id: \.element) { index, provider in
-                    if index > 0 {
-                        Divider()
+            HStack {
+                Text(showingSettings ? "Settings" : "AI Usage")
+                    .font(.title3.weight(.semibold))
+                Spacer()
+                SettingsGearButton(isActive: showingSettings) {
+                    var transaction = Transaction()
+                    transaction.disablesAnimations = true
+                    withTransaction(transaction) {
+                        showingSettings.toggle()
                     }
-                    ProviderSection(
-                        provider: provider,
-                        phase: model.phases[provider] ?? .unconfigured,
-                        health: model.serviceHealth[provider],
-                        hasSavedSecret: model.savedSecretProviders.contains(provider),
-                        onSave: { model.saveSecret(for: provider, value: $0) },
-                        onRemove: { model.removeSecret(for: provider) }
-                    )
                 }
             }
-            Divider()
-                .padding(.bottom, 8)
-            PopoverFooter(model: model)
+            .padding(.bottom, 4)
+            if showingSettings {
+                SettingsView(model: model)
+            } else {
+                usage
+            }
         }
         .padding(Theme.padding)
         .frame(width: Theme.popoverWidth, alignment: .leading)
@@ -40,5 +33,56 @@ struct UsagePopover: View {
         .onAppear {
             model.refreshIfStale()
         }
+        .onDisappear {
+            showingSettings = false
+        }
+    }
+
+    @ViewBuilder
+    private var usage: some View {
+        if model.visibleProviders.isEmpty {
+            Text("No sections. Turn one on in Settings.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.vertical, 12)
+        } else {
+            ForEach(Array(model.visibleProviders.enumerated()), id: \.element) { index, provider in
+                if index > 0 {
+                    Divider()
+                }
+                ProviderSection(
+                    provider: provider,
+                    phase: model.phases[provider] ?? .unconfigured,
+                    health: model.serviceHealth[provider],
+                    hasSavedSecret: model.savedSecretProviders.contains(provider),
+                    onSave: { model.saveSecret(for: provider, value: $0) },
+                    onRemove: { model.removeSecret(for: provider) }
+                )
+            }
+        }
+        Divider()
+            .padding(.bottom, 8)
+        PopoverFooter(model: model)
+    }
+}
+
+private struct SettingsGearButton: View {
+    var isActive: Bool
+    var action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: isActive ? "gearshape.fill" : "gearshape")
+                .font(.system(size: 14, weight: .medium))
+                .frame(width: 22, height: 22)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.white)
+        .opacity(isActive || hovering ? 0.9 : 0.5)
+        .onHover { hovering = $0 }
+        .help(isActive ? "Close Settings" : "Settings")
+        .accessibilityLabel(isActive ? "Close Settings" : "Settings")
     }
 }
