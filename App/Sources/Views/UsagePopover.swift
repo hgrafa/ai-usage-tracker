@@ -53,7 +53,7 @@ struct UsagePopover: View {
                 ProviderSection(
                     provider: provider,
                     phase: model.phases[provider] ?? .unconfigured,
-                    health: model.serviceHealth[provider],
+                    health: model.showsProviderStatus ? model.serviceHealth[provider] : nil,
                     hasSavedSecret: model.savedSecretProviders.contains(provider),
                     onSave: { model.saveSecret(for: provider, value: $0) },
                     onRemove: { model.removeSecret(for: provider) }

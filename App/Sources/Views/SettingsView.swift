@@ -20,6 +20,9 @@ struct SettingsView: View {
                 .toggleStyle(.checkbox)
             }
             Divider()
+            Toggle("Show provider status", isOn: $model.showsProviderStatus)
+                .toggleStyle(.checkbox)
+            Divider()
             notificationControls
             Divider()
             launchAtLoginControls

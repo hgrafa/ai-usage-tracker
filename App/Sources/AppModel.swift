@@ -11,12 +11,16 @@ final class AppModel: ObservableObject {
     @Published private(set) var lastRefreshAt: Date?
     @Published private(set) var alertThresholds: Set<Int>
     @Published private(set) var notificationPermission: NotificationPermission = .notAsked
+    @Published var showsProviderStatus: Bool {
+        didSet { defaults.set(showsProviderStatus, forKey: Self.showsProviderStatusKey) }
+    }
 
     static let autoRefreshInterval: TimeInterval = 10 * 60
     static let staleInterval: TimeInterval = 60
     static let enabledSectionsKey = "enabledProviders"
     static let alertThresholdsKey = "limitAlertThresholds"
     static let announcedAlertsKey = "limitAlertsAnnounced"
+    static let showsProviderStatusKey = "showsProviderStatus"
 
     var menuBarReadings: [MenuBarReading] {
         MenuBarMath.readings(in: phases, visible: visibleProviders)
@@ -54,6 +58,7 @@ final class AppModel: ObservableObject {
         self.registry = FetcherRegistry(store: store, locator: locator)
         self.defaults = defaults
         enabledProviders = EnabledSections(stored: defaults.stringArray(forKey: Self.enabledSectionsKey)).providers
+        showsProviderStatus = defaults.object(forKey: Self.showsProviderStatusKey) as? Bool ?? true
         alertThresholds = AlertThresholds(stored: defaults.array(forKey: Self.alertThresholdsKey) as? [Int]).values
         alertTracker = LimitAlertTracker(announced: defaults.dictionary(forKey: Self.announcedAlertsKey) as? [String: Int] ?? [:])
         if Self.isRunningUnderTest {

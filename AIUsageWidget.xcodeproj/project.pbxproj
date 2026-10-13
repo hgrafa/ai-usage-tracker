@@ -22,6 +22,7 @@
 		6119AB2FF5EB745D0B0A0B0D /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47E05092D522C644AF78C6F /* HTTPClient.swift */; };
 		61219C09396D591C4C9EF69B /* JSONFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C327D0D981585978FB8224A /* JSONFields.swift */; };
 		62677FADD9821D31095ACEFF /* CursorUsageMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80D14C959112EB74FF39781 /* CursorUsageMappingTests.swift */; };
+		65CFA2D0522C9B1210E56876 /* AppModelSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDE62D58F68491188AD48BC /* AppModelSettingsTests.swift */; };
 		66D9D052D27B06BFDF9A2C49 /* CredentialEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0590831C3C1BBCEDBEFD820 /* CredentialEditor.swift */; };
 		683715F6118C1BC11D1BE795 /* GrokUsageFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41165CE25F3A7056BC1BC5C4 /* GrokUsageFetcher.swift */; };
 		6AFBB15B6186B5849C63277B /* StatusPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2EAD1E979A66972E08EA9C /* StatusPage.swift */; };
@@ -77,6 +78,7 @@
 		14EDD0DE7EE6766EC800D2D8 /* ClaudeUsageMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageMappingTests.swift; sourceTree = "<group>"; };
 		1C327D0D981585978FB8224A /* JSONFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONFields.swift; sourceTree = "<group>"; };
 		1DD2739CDDC79365BE56C30B /* Meter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Meter.swift; sourceTree = "<group>"; };
+		1EDE62D58F68491188AD48BC /* AppModelSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelSettingsTests.swift; sourceTree = "<group>"; };
 		20A132A668E812B1AEAB2D7C /* BlockingProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockingProcess.swift; sourceTree = "<group>"; };
 		2180A886FC3B5C91CD6FD847 /* LimitAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitAlertTests.swift; sourceTree = "<group>"; };
 		38529FBA64690EDD683D5F53 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -165,6 +167,7 @@
 		37F96C9085DAE51986D31D99 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				1EDE62D58F68491188AD48BC /* AppModelSettingsTests.swift */,
 				0E7541673537A63D21852D81 /* AppUpdateTests.swift */,
 				14EDD0DE7EE6766EC800D2D8 /* ClaudeUsageMappingTests.swift */,
 				0E9DD899B30A5843CC13A028 /* CodexUsageMappingTests.swift */,
@@ -355,6 +358,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				65CFA2D0522C9B1210E56876 /* AppModelSettingsTests.swift in Sources */,
 				54C1FBCC6BFEBDB1FAD6CEFB /* AppUpdateTests.swift in Sources */,
 				DDE9DE72A3C82C9FB97E97CA /* ClaudeUsageMappingTests.swift in Sources */,
 				B2E4B18A3EBF07D614A3E0DE /* CodexUsageMappingTests.swift in Sources */,
