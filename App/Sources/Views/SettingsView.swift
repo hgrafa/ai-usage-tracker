@@ -19,8 +19,15 @@ struct SettingsView: View {
                 .toggleStyle(.checkbox)
             }
             Divider()
-            Toggle("Show provider status", isOn: $model.showsProviderStatus)
-                .toggleStyle(.checkbox)
+            VStack(alignment: .leading, spacing: 2) {
+                Toggle("Show provider status", isOn: $model.showsProviderStatus)
+                    .toggleStyle(.checkbox)
+                Text("Flags a provider as Degraded, Disrupted, or Down when its status page reports a problem. Nothing shows while it's working normally.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.leading, 20)
+            }
             Divider()
             notificationControls
             Divider()
