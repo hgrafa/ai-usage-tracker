@@ -23,9 +23,9 @@
         AI Usage
       </a>
       <nav class="nav-links" aria-label="On this page">
+        <a href="#install">Install</a>
         <a href="#looks">Menu bar</a>
         <a href="#try">Try it</a>
-        <a href="#install">Install</a>
         <a href="https://github.com/hgrafa/ai-usage-widget">GitHub</a>
       </nav>
       <a class="btn btn-sm" data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest">Download</a>
@@ -48,6 +48,66 @@
         <div class="screen screen-hero" data-screen="hero" data-native="980" data-min="1" data-max="1.32" data-min-height="640"
              role="img" aria-label="A Mac menu bar showing Claude 42%, Codex 18%, Cursor 73%, and Grok Bot 9%, with the AI Usage popover open below it."></div>
         <noscript><p class="fine">Turn on JavaScript to see the menu bar preview.</p></noscript>
+      </div>
+    </section>
+
+    <section class="install" id="install" aria-labelledby="install-title">
+      <div class="wide">
+        <h2 id="install-title">Install.</h2>
+        <ol class="steps">
+          <li>
+            <div class="art art-dmg" aria-hidden="true">
+              <div class="dmg">
+                <img src="icon-512.png" width="64" height="64" alt="">
+                <span>AI-Usage.dmg</span>
+              </div>
+            </div>
+            <h3>Download</h3>
+            <p><a data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest">AI-Usage.dmg</a> from the latest release.</p>
+          </li>
+          <li>
+            <div class="art art-drag" aria-hidden="true">
+              <img class="drag-app" src="icon-512.png" width="56" height="56" alt="">
+              <svg class="drag-arrow" viewBox="0 0 80 20"><path d="M2 10h70m-8-7 8 7-8 7" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="5 5" stroke-linecap="round"/></svg>
+              <svg class="folder" viewBox="0 0 64 52">
+                <path d="M4 8a4 4 0 0 1 4-4h16l5 6h27a4 4 0 0 1 4 4v30a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" fill="#3b8cf0"/>
+                <path d="M4 16h56v28a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" fill="#5aa7ff"/>
+                <path d="M32 22l-9 18m9-18 9 18m-14.5-6h11" fill="none" stroke="#1d5fb5" stroke-width="2.6" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3>Drag to Applications</h3>
+            <p>Open the disk image and drop the app on the folder.</p>
+          </li>
+          <li>
+            <div class="art art-allow" aria-hidden="true">
+              <div class="sheet">
+                <span class="sheet-title">Privacy &amp; Security</span>
+                <span class="sheet-line">“AI Usage” was blocked to protect your Mac.</span>
+                <span class="sheet-btn">Open Anyway</span>
+              </div>
+            </div>
+            <h3>Allow it once</h3>
+            <p>Not notarized yet. After the first block, choose Open Anyway in System Settings › Privacy &amp; Security.</p>
+          </li>
+        </ol>
+
+        <aside class="warn" role="note" aria-labelledby="warn-title">
+          <svg class="warn-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10.3 3.9 1.8 18.5A2 2 0 0 0 3.5 21.5h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" fill="currentColor"/>
+            <path d="M12 9v5m0 3.2v.1" stroke="#121214" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <h3 id="warn-title">Mac says it can’t open the app?</h3>
+            <p>AI Usage is not notarized by Apple yet, so the first launch shows a warning that it can’t be verified. The app is safe to run. Allow it once:</p>
+            <ol>
+              <li>Open AI Usage from Applications and dismiss the warning.</li>
+              <li>Open System Settings and choose Privacy &amp; Security.</li>
+              <li>Scroll to the bottom, to the Security section.</li>
+              <li>Next to “AI Usage” was blocked, click Open Anyway, then confirm with your password or Touch ID.</li>
+            </ol>
+            <p>AI Usage opens in the menu bar. You only need to do this once.</p>
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -119,48 +179,6 @@
                  role="img" aria-label="Live preview of the menu bar and popover." aria-live="polite"></div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <section class="install" id="install" aria-labelledby="install-title">
-      <div class="wide">
-        <h2 id="install-title">Install.</h2>
-        <ol class="steps">
-          <li>
-            <div class="art art-dmg" aria-hidden="true">
-              <div class="dmg">
-                <img src="icon-512.png" width="64" height="64" alt="">
-                <span>AI-Usage.dmg</span>
-              </div>
-            </div>
-            <h3>Download</h3>
-            <p><a data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest">AI-Usage.dmg</a> from the latest release.</p>
-          </li>
-          <li>
-            <div class="art art-drag" aria-hidden="true">
-              <img class="drag-app" src="icon-512.png" width="56" height="56" alt="">
-              <svg class="drag-arrow" viewBox="0 0 80 20"><path d="M2 10h70m-8-7 8 7-8 7" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="5 5" stroke-linecap="round"/></svg>
-              <svg class="folder" viewBox="0 0 64 52">
-                <path d="M4 8a4 4 0 0 1 4-4h16l5 6h27a4 4 0 0 1 4 4v30a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" fill="#3b8cf0"/>
-                <path d="M4 16h56v28a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z" fill="#5aa7ff"/>
-                <path d="M32 22l-9 18m9-18 9 18m-14.5-6h11" fill="none" stroke="#1d5fb5" stroke-width="2.6" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <h3>Drag to Applications</h3>
-            <p>Open the disk image and drop the app on the folder.</p>
-          </li>
-          <li>
-            <div class="art art-allow" aria-hidden="true">
-              <div class="sheet">
-                <span class="sheet-title">Privacy &amp; Security</span>
-                <span class="sheet-line">“AI Usage” was blocked to protect your Mac.</span>
-                <span class="sheet-btn">Open Anyway</span>
-              </div>
-            </div>
-            <h3>Allow it once</h3>
-            <p>Not notarized yet. After the first block, choose Open Anyway in System Settings › Privacy &amp; Security.</p>
-          </li>
-        </ol>
       </div>
     </section>
   </main>
