@@ -1,12 +1,42 @@
 :root {
-  color-scheme: dark;
-  --bg: #121214;
-  --panel: #19191c;
-  --text: #f4f4f5;
-  --muted: #a1a1aa;
-  --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.16);
-  --accent: #fa9e40;
+  color-scheme: light dark;
+  --bg: light-dark(#f7f4ef, #121214);
+  --panel: light-dark(#ffffff, #19191c);
+  --text: light-dark(#1c1917, #f4f4f5);
+  --muted: light-dark(#6b645c, #a1a1aa);
+  --line: light-dark(rgba(28, 25, 23, 0.12), rgba(255, 255, 255, 0.08));
+  --line-strong: light-dark(rgba(28, 25, 23, 0.24), rgba(255, 255, 255, 0.16));
+  --control-line: light-dark(rgba(28, 25, 23, 0.5), rgba(255, 255, 255, 0.34));
+  --control-line-hover: light-dark(rgba(28, 25, 23, 0.72), rgba(255, 255, 255, 0.5));
+  --track: light-dark(rgba(28, 25, 23, 0.2), rgba(255, 255, 255, 0.16));
+  --hover: light-dark(rgba(28, 25, 23, 0.06), rgba(255, 255, 255, 0.06));
+  --seg-bg: light-dark(rgba(28, 25, 23, 0.07), rgba(255, 255, 255, 0.06));
+  --seg-on: light-dark(#ffffff, rgba(255, 255, 255, 0.15));
+  --seg-shadow: light-dark(rgba(0, 0, 0, 0.14), transparent);
+  --thumb-ring: light-dark(rgba(28, 25, 23, 0.1), rgba(0, 0, 0, 0.25));
+  --btn-hover: light-dark(#000000, #ffffff);
+  --btn-active: light-dark(#3a3633, #e4e4e7);
+  --nav-bg: light-dark(rgba(247, 244, 239, 0.75), rgba(18, 18, 20, 0.72));
+  --glow-a: light-dark(rgba(250, 158, 64, 0.2), rgba(250, 158, 64, 0.13));
+  --glow-b: light-dark(rgba(110, 80, 220, 0.07), rgba(110, 80, 220, 0.1));
+  --selection: light-dark(rgba(250, 158, 64, 0.35), rgba(250, 158, 64, 0.3));
+  --focus: var(--text);
+  --accent: light-dark(#b85a0d, #fa9e40);
+  --heat-warm: light-dark(#c06000, #ff9f0a);
+  --heat-hot: light-dark(#d70015, #ff453a);
+  --screen-ring: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.09));
+  --screen-glow: light-dark(rgba(250, 158, 64, 0.3), rgba(250, 158, 64, 0.35));
+  --screen-shadow: light-dark(rgba(60, 40, 20, 0.35), rgba(0, 0, 0, 0.8));
+  --art-bg: light-dark(#efe9f3, #1e1a2c);
+  --art-a: light-dark(rgba(250, 158, 64, 0.3), rgba(250, 158, 64, 0.22));
+  --art-b: light-dark(rgba(90, 70, 200, 0.16), rgba(90, 70, 200, 0.25));
+  --art-ink: light-dark(rgba(0, 0, 0, 0.42), rgba(255, 255, 255, 0.5));
+  --sheet-bg: light-dark(#f5f5f7, #2a2a2e);
+  --sheet-text: light-dark(rgba(0, 0, 0, 0.85), #ffffff);
+  --sheet-muted: light-dark(rgba(0, 0, 0, 0.6), rgba(255, 255, 255, 0.65));
+  --sheet-ring: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
+  --sheet-shadow: light-dark(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.4));
+  --sheet-btn: light-dark(#007aff, #0a84ff);
   --warm: #ff9f0a;
   --hot: #ff453a;
   --display: "Fraunces", "Iowan Old Style", Palatino, serif;
@@ -27,10 +57,10 @@ html {
 
 body {
   margin: 0;
-  background:
-    radial-gradient(60rem 30rem at 85% -5%, rgba(250, 158, 64, 0.13), transparent 70%),
-    radial-gradient(50rem 30rem at 0% 20%, rgba(110, 80, 220, 0.1), transparent 70%),
-    var(--bg);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(60rem 30rem at 85% -5%, var(--glow-a), transparent 70%),
+    radial-gradient(50rem 30rem at 0% 20%, var(--glow-b), transparent 70%);
   background-repeat: no-repeat;
   color: var(--text);
   font-family: var(--ui);
@@ -40,7 +70,7 @@ body {
 }
 
 ::selection {
-  background: rgba(250, 158, 64, 0.3);
+  background: var(--selection);
 }
 
 :focus {
@@ -48,7 +78,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--text);
+  outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
 
@@ -120,7 +150,7 @@ a {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(18, 18, 20, 0.72);
+  background: var(--nav-bg);
   backdrop-filter: blur(18px) saturate(1.4);
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
   border-bottom: 1px solid var(--line);
@@ -161,7 +191,7 @@ a {
 
 .nav-links a:hover {
   color: var(--text);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--hover);
 }
 
 .btn {
@@ -176,17 +206,17 @@ a {
   font-size: 15px;
   font-weight: 700;
   text-decoration: none;
-  transition: transform 160ms ease, background 160ms ease;
+  transition: transform 160ms ease, background-color 160ms ease;
 }
 
 .btn:hover {
-  background: #fff;
+  background: var(--btn-hover);
   transform: translateY(-1px);
 }
 
 .btn:active {
   transform: none;
-  background: #e4e4e7;
+  background: var(--btn-active);
 }
 
 .btn-sm {
@@ -242,9 +272,9 @@ a {
   border-radius: 18px;
   background: #1a1430;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.09),
-    0 50px 120px -50px rgba(250, 158, 64, 0.35),
-    0 30px 80px -40px rgba(0, 0, 0, 0.8);
+    0 0 0 1px var(--screen-ring),
+    0 50px 120px -50px var(--screen-glow),
+    0 30px 80px -40px var(--screen-shadow);
 }
 
 .screen-inner {
@@ -272,21 +302,31 @@ a {
     linear-gradient(160deg, #2b1a46, #160f2b);
 }
 
+.wall::before,
 .wall::after {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.18;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-.light .wall {
+/* Light wallpaper sits on top and fades in, since gradients cannot transition. */
+.wall::before {
+  opacity: 0;
   background:
     radial-gradient(110% 90% at 90% -10%, #ffd0a1 0%, rgba(255, 208, 161, 0) 55%),
     radial-gradient(80% 70% at 60% 80%, #f6b4c9 0%, rgba(246, 180, 201, 0) 65%),
     radial-gradient(90% 80% at 0% 100%, #a9b7ff 0%, rgba(169, 183, 255, 0) 62%),
     linear-gradient(160deg, #f3ecff, #e5ddf6);
+}
+
+.light .wall::before {
+  opacity: 1;
+}
+
+.wall::after {
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .mb {
@@ -306,8 +346,8 @@ a {
 }
 
 .light .mb {
-  background: rgba(255, 255, 255, 0.5);
-  color: #000;
+  background: rgba(255, 255, 255, 0.4);
+  color: rgba(0, 0, 0, 0.85);
 }
 
 /* Menus that do not fit wrap onto a hidden second line, so none are cut mid-word. */
@@ -348,7 +388,7 @@ a {
 }
 
 .light .si.active {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.11);
 }
 
 .si-r {
@@ -422,7 +462,16 @@ a {
   opacity: 0;
   transform: translateY(-6px) scale(0.97);
   transform-origin: var(--ax) 0;
+  color-scheme: dark;
   transition: opacity 180ms ease, transform 260ms cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+.light .pop {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.13),
+    0 0 0 1.5px rgba(0, 0, 0, 0.3),
+    0 10px 24px rgba(0, 0, 0, 0.22),
+    0 28px 70px rgba(0, 0, 0, 0.4);
 }
 
 .pop.open {
@@ -658,7 +707,7 @@ a {
 
 .screen-slice {
   border-radius: 12px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.09), 0 30px 60px -40px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 0 0 1px var(--screen-ring), 0 30px 60px -40px var(--screen-shadow);
 }
 
 .slices figcaption {
@@ -714,11 +763,11 @@ a {
 }
 
 .row[data-heat="warm"] {
-  --c: var(--warm);
+  --c: var(--heat-warm);
 }
 
 .row[data-heat="hot"] {
-  --c: var(--hot);
+  --c: var(--heat-hot);
 }
 
 .row output {
@@ -748,8 +797,8 @@ a {
   width: 32px;
   height: 18px;
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.18);
-  transition: background 160ms ease;
+  background: var(--control-line);
+  transition: background-color 160ms ease;
 }
 
 .sw-ui::after {
@@ -773,7 +822,7 @@ a {
 }
 
 .sw input:focus-visible + .sw-ui {
-  outline: 2px solid var(--text);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -810,7 +859,7 @@ a {
 .row input[type="range"]::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 2px;
-  background: linear-gradient(to right, var(--c) var(--p), rgba(255, 255, 255, 0.16) var(--p));
+  background: linear-gradient(to right, var(--c) var(--p), var(--track) var(--p));
 }
 
 .row input[type="range"]::-webkit-slider-thumb {
@@ -820,7 +869,7 @@ a {
   border: 0;
   border-radius: 50%;
   background: var(--c);
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 4px var(--thumb-ring);
   -webkit-appearance: none;
   appearance: none;
 }
@@ -828,7 +877,7 @@ a {
 .row input[type="range"]::-moz-range-track {
   height: 4px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--track);
 }
 
 .row input[type="range"]::-moz-range-progress {
@@ -843,13 +892,14 @@ a {
   border: 0;
   border-radius: 50%;
   background: var(--c);
+  box-shadow: 0 0 0 4px var(--thumb-ring);
 }
 
 .seg {
   display: inline-flex;
   padding: 3px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--seg-bg);
 }
 
 .seg label {
@@ -869,15 +919,16 @@ a {
   border-radius: 7px;
   font-size: 14px;
   cursor: pointer;
-  transition: background 140ms ease;
+  transition: background-color 140ms ease;
 }
 
 .seg input:checked + span {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--seg-on);
+  box-shadow: 0 0 0 1px var(--control-line), 0 1px 2px var(--seg-shadow);
 }
 
 .seg input:focus-visible + span {
-  outline: 2px solid var(--text);
+  outline: 2px solid var(--focus);
 }
 
 .presets {
@@ -888,19 +939,19 @@ a {
 
 .presets button {
   padding: 7px 13px;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--control-line);
   border-radius: 999px;
   background: transparent;
   color: var(--text);
   font: inherit;
   font-size: 14px;
   cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease;
 }
 
 .presets button:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--hover);
+  border-color: var(--control-line-hover);
 }
 
 .preview {
@@ -946,9 +997,9 @@ a {
   overflow: hidden;
   border-radius: 12px;
   background:
-    radial-gradient(90% 90% at 80% 0%, rgba(250, 158, 64, 0.22), transparent 60%),
-    radial-gradient(90% 90% at 0% 100%, rgba(90, 70, 200, 0.25), transparent 60%),
-    #1e1a2c;
+    radial-gradient(90% 90% at 80% 0%, var(--art-a), transparent 60%),
+    radial-gradient(90% 90% at 0% 100%, var(--art-b), transparent 60%),
+    var(--art-bg);
   font-family: var(--mac);
 }
 
@@ -964,6 +1015,7 @@ a {
   padding: 1px 6px;
   border-radius: 4px;
   background: #0a63d8;
+  color: #fff;
 }
 
 .art-drag {
@@ -972,7 +1024,7 @@ a {
 
 .drag-arrow {
   width: 70px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--art-ink);
 }
 
 .folder {
@@ -987,8 +1039,9 @@ a {
   width: 78%;
   padding: 12px 14px;
   border-radius: 10px;
-  background: #2a2a2e;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 14px 30px rgba(0, 0, 0, 0.4);
+  background: var(--sheet-bg);
+  box-shadow: 0 0 0 1px var(--sheet-ring), 0 14px 30px var(--sheet-shadow);
+  color: var(--sheet-text);
   font-size: 11px;
 }
 
@@ -998,7 +1051,7 @@ a {
 }
 
 .sheet-line {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--sheet-muted);
 }
 
 .sheet-btn {
@@ -1006,7 +1059,8 @@ a {
   margin-top: 4px;
   padding: 3px 10px;
   border-radius: 5px;
-  background: #0a84ff;
+  background: var(--sheet-btn);
+  color: #fff;
   font-weight: 600;
 }
 
@@ -1098,6 +1152,59 @@ a {
 #try,
 #install {
   scroll-margin-top: 64px;
+}
+
+/* Appearance changes. theme-ready is set after first paint so loading never animates. */
+
+@media (prefers-reduced-motion: no-preference) {
+  html.theme-ready :is(body, .nav, .nav-links a, .controls, .steps li, .art, .sheet, .foot) {
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+  }
+
+  html.theme-ready .btn {
+    transition: transform 160ms ease, background-color 200ms ease, color 200ms ease;
+  }
+
+  html.theme-ready .presets button {
+    transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+  }
+
+  html.theme-ready .wall::before {
+    transition: opacity 500ms ease-in-out;
+  }
+
+  html.theme-ready .mb {
+    transition: background-color 500ms ease-in-out, color 500ms ease-in-out;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .nav {
+    background: var(--bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .mb {
+    background: #2b2b2b;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .light .mb {
+    background: #e6e6e6;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --muted: var(--text);
+    --line: light-dark(rgba(28, 25, 23, 0.4), rgba(255, 255, 255, 0.35));
+    --line-strong: light-dark(rgba(28, 25, 23, 0.6), rgba(255, 255, 255, 0.55));
+    --control-line: light-dark(rgba(28, 25, 23, 0.75), rgba(255, 255, 255, 0.6));
+    --control-line-hover: var(--text);
+    --track: light-dark(rgba(28, 25, 23, 0.45), rgba(255, 255, 255, 0.4));
+  }
 }
 
 @media (max-width: 980px) {

@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AI Usage — How much is left.</title>
   <meta name="description" content="A macOS menu-bar app that shows how much of your Claude, Codex, Cursor, and Grok Bot allowances you have used.">
-  <meta name="theme-color" content="#121214">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f7f4ef" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121214" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:SOFT,opsz,wght@0..100,9..144,500..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2">
-  <script src="app.js?v=2" defer></script>
+  <link rel="stylesheet" href="styles.css?v=3">
+  <script src="app.js?v=3" defer></script>
 </head>
 <body>
   <a class="skip" href="#content">Skip to content</a>
@@ -101,8 +103,9 @@
             <fieldset>
               <legend>Menu bar</legend>
               <div class="seg">
-                <label><input type="radio" name="theme" value="dark" checked><span>Dark</span></label>
+                <label><input type="radio" name="theme" value="auto" checked><span>Auto</span></label>
                 <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+                <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
               </div>
             </fieldset>
             <fieldset>

@@ -2,6 +2,7 @@
   "use strict";
 
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var scheme = window.matchMedia("(prefers-color-scheme: dark)");
   var ORDER = ["claude", "codex", "cursor", "grok"];
 
   // Same marks the app draws in ProviderGlyph.swift.
@@ -150,8 +151,22 @@
     return screen;
   }
 
+  function systemTheme() {
+    return scheme.matches ? "dark" : "light";
+  }
+
+  var followers = [];
+
+  function onSystemTheme(fn) {
+    followers.push(fn);
+  }
+
+  function applyTheme(screen, theme) {
+    screen.inner.classList.toggle("light", theme === "light");
+  }
+
   function render(screen, state) {
-    screen.inner.classList.toggle("light", state.theme === "light");
+    applyTheme(screen, state.theme);
     screen.si.innerHTML = statusItemHTML(state.readings);
     if (screen.kind === "slice") screen.el.setAttribute("aria-label", statusLabel(state.readings));
     if (screen.body) screen.body.innerHTML = popoverHTML(state.readings);
@@ -218,8 +233,9 @@
     var screen = buildScreen(el);
     var target = [["claude", 42], ["codex", 18], ["cursor", 73], ["grok", 9]];
     var at = function (k) {
-      return { theme: "dark", readings: target.map(function (r) { return [r[0], r[1] * k]; }) };
+      return { theme: systemTheme(), readings: target.map(function (r) { return [r[0], r[1] * k]; }) };
     };
+    onSystemTheme(function (theme) { applyTheme(screen, theme); });
     fit(screen);
     if (reduced) {
       render(screen, at(1));
@@ -293,8 +309,9 @@
 
   function studio(el, form) {
     var screen = buildScreen(el);
+    var checked = form.querySelector('input[name="theme"]:checked');
     var state = {
-      theme: "dark",
+      theme: checked ? checked.value : "auto",
       on: { claude: true, codex: true, cursor: true, grok: false },
       value: { claude: 42, codex: 18, cursor: 73, grok: 9 }
     };
@@ -309,6 +326,14 @@
         "</div>";
     }).join("");
 
+    function effectiveTheme() {
+      return state.theme === "auto" ? systemTheme() : state.theme;
+    }
+
+    onSystemTheme(function (theme) {
+      if (state.theme === "auto") applyTheme(screen, theme);
+    });
+
     function sync() {
       ORDER.forEach(function (id) {
         var v = Math.round(state.value[id]);
@@ -321,20 +346,24 @@
         row.querySelector("[data-out]").textContent = v + "%";
       });
       render(screen, {
-        theme: state.theme,
+        theme: effectiveTheme(),
         readings: ORDER.filter(function (id) { return state.on[id]; }).map(function (id) { return [id, state.value[id]]; })
       });
     }
 
     form.addEventListener("input", function (event) {
       var t = event.target;
+      if (t.name === "theme") {
+        state.theme = t.value;
+        applyTheme(screen, effectiveTheme());
+        return;
+      }
       if (t.dataset.on) state.on[t.dataset.on] = t.checked;
       if (t.dataset.v) {
         state.value[t.dataset.v] = +t.value;
         state.on[t.dataset.v] = true;
         rows.querySelector('[data-on="' + t.dataset.v + '"]').checked = true;
       }
-      if (t.name === "theme") state.theme = t.value;
       sync();
     });
 
@@ -391,6 +420,16 @@
     var studioEl = document.querySelector('[data-screen="studio"]');
     var form = document.querySelector("[data-controls]");
     if (studioEl && form) studio(studioEl, form);
+
+    if (scheme.addEventListener) {
+      scheme.addEventListener("change", function () {
+        var theme = systemTheme();
+        followers.forEach(function (fn) { fn(theme); });
+      });
+    }
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { document.documentElement.classList.add("theme-ready"); });
+    });
 
     var resize = new ResizeObserver(function () { screens.forEach(fit); });
     screens.forEach(function (s) { resize.observe(s.el); });
