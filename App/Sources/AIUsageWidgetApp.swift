@@ -20,6 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !AppModel.isRunningUnderTest else { return }
-        statusBar = StatusBarController(model: AppModel())
+        LegacySettings.migrate()
+        statusBar = StatusBarController(model: AppModel(), updater: AppUpdater())
     }
 }
