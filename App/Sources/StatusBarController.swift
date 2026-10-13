@@ -57,24 +57,13 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         button.setAccessibilityLabel(label.isEmpty ? "AI Usage" : label)
     }
 
-    /// Opening the app again (Finder, Spotlight, Launchpad) is the only way back once the menu bar hides the icon.
-    func reveal() {
-        statusItem.isVisible = true
-        guard let button = statusItem.button, !popover.isShown else { return }
-        showPopover(from: button)
-    }
-
     @objc private func togglePopover(_ sender: NSStatusBarButton) {
         if popover.isShown {
             popover.performClose(sender)
             return
         }
-        showPopover(from: sender)
-    }
-
-    private func showPopover(from button: NSStatusBarButton) {
-        button.highlight(true)
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        sender.highlight(true)
+        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
     }
 }
