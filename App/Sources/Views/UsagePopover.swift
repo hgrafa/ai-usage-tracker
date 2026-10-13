@@ -35,8 +35,6 @@ struct UsagePopover: View {
         .padding(Theme.padding)
         .frame(width: Theme.popoverWidth, alignment: .leading)
         .fixedSize(horizontal: true, vertical: true)
-        .background(Theme.background)
-        .preferredColorScheme(.dark)
         .onAppear {
             model.refreshIfStale()
         }

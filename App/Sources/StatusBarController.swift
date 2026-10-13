@@ -19,7 +19,6 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         popover.behavior = .transient
         popover.animates = false
         popover.delegate = self
-        popover.appearance = NSAppearance(named: .darkAqua)
 
         if let button = statusItem.button {
             button.target = self
