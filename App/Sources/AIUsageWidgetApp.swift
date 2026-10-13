@@ -22,4 +22,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !AppModel.isRunningUnderTest else { return }
         statusBar = StatusBarController(model: AppModel(), updater: AppUpdater())
     }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        statusBar?.reveal()
+        return false
+    }
 }
