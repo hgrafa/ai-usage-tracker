@@ -31,7 +31,7 @@ struct BreakdownChart: View {
                 }
                 .frame(height: Theme.breakdownBarHeight)
                 .clipShape(Capsule())
-                .background(Capsule().fill(Color.white.opacity(0.08)))
+                .background(Capsule().fill(Color.primary.opacity(0.08)))
             }
             ForEach(breakdown.segments) { segment in
                 HStack(spacing: 8) {
