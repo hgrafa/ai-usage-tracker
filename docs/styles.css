@@ -196,6 +196,38 @@ a {
   font-size: 14px;
 }
 
+.nav-cta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gh {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.gh:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.gh-mark {
+  display: block;
+  fill: currentColor;
+}
+
 /* Hero */
 
 .hero {
@@ -1092,7 +1124,7 @@ a {
     display: none;
   }
 
-  .btn-sm {
+  .nav-cta {
     margin-left: auto;
   }
 
@@ -1111,7 +1143,8 @@ a {
 }
 
 @media (pointer: coarse) {
-  .btn-sm {
+  .btn-sm,
+  .gh {
     height: 38px;
   }
 }

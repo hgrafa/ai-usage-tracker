@@ -355,7 +355,10 @@
             link.href = disk.browser_download_url;
           });
         }
-        if (slot && release.tag_name) slot.textContent = " · " + release.tag_name;
+        if (slot && release.tag_name) {
+          slot.textContent = release.tag_name;
+          slot.parentNode.setAttribute("aria-label", "Version " + release.tag_name + " on GitHub");
+        }
       })
       .catch(function () {});
   }
