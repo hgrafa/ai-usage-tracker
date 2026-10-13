@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UsagePopover: View {
     @ObservedObject var model: AppModel
+    @ObservedObject var updater: AppUpdater
     @State private var showingSettings = false
 
     var body: some View {
@@ -19,8 +20,13 @@ struct UsagePopover: View {
                 }
             }
             .padding(.bottom, 4)
+            if let version = updater.availableVersion {
+                UpdateBanner(version: version) {
+                    updater.checkForUpdates()
+                }
+            }
             if showingSettings {
-                SettingsView(model: model)
+                SettingsView(model: model, updater: updater)
             } else {
                 usage
             }
@@ -63,6 +69,26 @@ struct UsagePopover: View {
         Divider()
             .padding(.bottom, 8)
         PopoverFooter(model: model)
+    }
+}
+
+private struct UpdateBanner: View {
+    var version: String
+    var onUpdate: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.down.circle.fill")
+                .foregroundStyle(.green)
+            Text("Version \(version) is available")
+                .font(.caption)
+            Spacer(minLength: 8)
+            Button("Update", action: onUpdate)
+                .controlSize(.small)
+        }
+        .padding(8)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.06)))
+        .padding(.vertical, 6)
     }
 }
 

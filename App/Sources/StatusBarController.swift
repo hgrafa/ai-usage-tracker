@@ -9,10 +9,10 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private let popover = NSPopover()
     private var observation: AnyCancellable?
 
-    init(model: AppModel) {
+    init(model: AppModel, updater: AppUpdater) {
         self.model = model
         super.init()
-        let hosting = PopoverHostingController(rootView: UsagePopover(model: model))
+        let hosting = PopoverHostingController(rootView: UsagePopover(model: model, updater: updater))
         hosting.sizingOptions = .preferredContentSize
         hosting.safeAreaRegions = []
         popover.contentViewController = hosting

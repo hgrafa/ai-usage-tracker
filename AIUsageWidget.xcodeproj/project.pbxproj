@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		04E0AFEA61365EF7DFDB18F1 /* CursorUsageFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40462E490215E5F2696372DE /* CursorUsageFetcher.swift */; };
 		0E5F6F727F4ABD36DBE7E0A9 /* GrokUsageMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 851C0503B661EF3C14745E3D /* GrokUsageMappingTests.swift */; };
+		142A7319BD15992FD6143B90 /* AppUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8730FAB6A8874D2CD9412A39 /* AppUpdater.swift */; };
 		156BA78B5AEAF35D8D78D15E /* MenuBarMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10B03740E5989D813F014E7 /* MenuBarMathTests.swift */; };
 		161C16FA3CC703D414484776 /* BlockingProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A132A668E812B1AEAB2D7C /* BlockingProcess.swift */; };
 		1C99F2B4AFA8817E23C1C6F7 /* BreakdownChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BD3CE8928CA07FED844CDF /* BreakdownChart.swift */; };
@@ -16,6 +17,7 @@
 		3CBDDF54439D0CEC116699C5 /* AIUsageWidgetApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A12DEC93D6931730F178C8 /* AIUsageWidgetApp.swift */; };
 		3E42E717D6EFA16BD5862508 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38529FBA64690EDD683D5F53 /* Theme.swift */; };
 		4507E372E555DAFC2949F1EB /* CursorSessionLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEE63171A421D1E7DD6FF5B2 /* CursorSessionLocator.swift */; };
+		48C7AD01BE1873F660E36300 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = B9716AF21D700E4D1C0F2F4E /* Sparkle */; };
 		48F9CEC0D2A5503B6B95F435 /* AppUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D54B3B4B7E7B5A41616B8964 /* AppUpdate.swift */; };
 		54C1FBCC6BFEBDB1FAD6CEFB /* AppUpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E7541673537A63D21852D81 /* AppUpdateTests.swift */; };
 		5740AF8F2F8BFD7E04CC7023 /* UsagePopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2B84045CAB5AF801456FE4 /* UsagePopover.swift */; };
@@ -101,6 +103,7 @@
 		7D7CBFAFA310F5F48EF4644A /* CodexUsageFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexUsageFetcher.swift; sourceTree = "<group>"; };
 		7EB5E4BDF86C7BBEF91944E5 /* Credential.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Credential.swift; sourceTree = "<group>"; };
 		851C0503B661EF3C14745E3D /* GrokUsageMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrokUsageMappingTests.swift; sourceTree = "<group>"; };
+		8730FAB6A8874D2CD9412A39 /* AppUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdater.swift; sourceTree = "<group>"; };
 		8938B7E00D7C07DAEED49D8D /* PopoverFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverFooter.swift; sourceTree = "<group>"; };
 		8FF17ADCFAF3E88A18BF1581 /* MeterRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeterRow.swift; sourceTree = "<group>"; };
 		91D0211E95CBAE23EC484B84 /* ProviderGlyph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderGlyph.swift; sourceTree = "<group>"; };
@@ -125,6 +128,17 @@
 		F47E05092D522C644AF78C6F /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
 		FD2FF9F7E8316E717D9200AB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2D2DE71C16864DD8B28D78CD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				48C7AD01BE1873F660E36300 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		24A915E29FFE3C4EE7464A18 /* App */ = {
@@ -249,6 +263,7 @@
 			isa = PBXGroup;
 			children = (
 				D54B3B4B7E7B5A41616B8964 /* AppUpdate.swift */,
+				8730FAB6A8874D2CD9412A39 /* AppUpdater.swift */,
 				20A132A668E812B1AEAB2D7C /* BlockingProcess.swift */,
 				43A841F74A2821C84FD72190 /* LaunchAtLogin.swift */,
 				624674AE23E9DC10EF4D0B01 /* UsageFormatting.swift */,
@@ -293,6 +308,7 @@
 			buildPhases = (
 				D48FC52A265B2B7F0B983DE3 /* Sources */,
 				294E9C2373A1D84D1661DC4B /* Resources */,
+				2D2DE71C16864DD8B28D78CD /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -300,6 +316,7 @@
 			);
 			name = AIUsageWidget;
 			packageProductDependencies = (
+				B9716AF21D700E4D1C0F2F4E /* Sparkle */,
 			);
 			productName = AIUsageWidget;
 			productReference = 73A60D83162B6AE97BF316AA /* AIUsageWidget.app */;
@@ -331,6 +348,9 @@
 			);
 			mainGroup = 998A76BF5D720B57D9EEF441;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C8ABCAE8A00EFF826FB24347 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E1223DEF188664714685FBE6 /* Products */;
 			projectDirPath = "";
@@ -379,6 +399,7 @@
 				3CBDDF54439D0CEC116699C5 /* AIUsageWidgetApp.swift in Sources */,
 				F0914C185CE7549978FBEAED /* AppModel.swift in Sources */,
 				48F9CEC0D2A5503B6B95F435 /* AppUpdate.swift in Sources */,
+				142A7319BD15992FD6143B90 /* AppUpdater.swift in Sources */,
 				161C16FA3CC703D414484776 /* BlockingProcess.swift in Sources */,
 				1C99F2B4AFA8817E23C1C6F7 /* BreakdownChart.swift in Sources */,
 				7E9284F7D9D8C935CDA07B65 /* ClaudeUsageFetcher.swift in Sources */,
@@ -523,6 +544,7 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "AI Usage";
 				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -547,6 +569,7 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "AI Usage";
 				INFOPLIST_KEY_LSUIElement = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -681,6 +704,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C8ABCAE8A00EFF826FB24347 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.10.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B9716AF21D700E4D1C0F2F4E /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C8ABCAE8A00EFF826FB24347 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C308538A8EB003728BA6BF3F /* Project object */;
 }
