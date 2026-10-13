@@ -343,7 +343,7 @@
   function releaseLinks() {
     var slot = document.querySelector("[data-version]");
     if (!window.fetch) return;
-    fetch("https://api.github.com/repos/hgrafa/ai-usage-widget/releases/latest")
+    fetch("https://api.github.com/repos/hgrafa/ai-usage-tracker/releases/latest")
       .then(function (response) {
         if (!response.ok) throw new Error("release");
         return response.json();
