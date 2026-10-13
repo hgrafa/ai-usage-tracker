@@ -17,10 +17,10 @@ final class AppModel: ObservableObject {
 
     static let autoRefreshInterval: TimeInterval = 10 * 60
     static let staleInterval: TimeInterval = 60
-    static let enabledSectionsKey = "enabledProviders"
-    static let alertThresholdsKey = "limitAlertThresholds"
-    static let announcedAlertsKey = "limitAlertsAnnounced"
-    static let showsProviderStatusKey = "showsProviderStatus"
+    nonisolated static let enabledSectionsKey = "enabledProviders"
+    nonisolated static let alertThresholdsKey = "limitAlertThresholds"
+    nonisolated static let announcedAlertsKey = "limitAlertsAnnounced"
+    nonisolated static let showsProviderStatusKey = "showsProviderStatus"
 
     var menuBarReadings: [MenuBarReading] {
         MenuBarMath.readings(in: phases, visible: visibleProviders)

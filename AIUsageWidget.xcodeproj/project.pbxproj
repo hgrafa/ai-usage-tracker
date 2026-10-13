@@ -47,6 +47,7 @@
 		B7BA02A75B45D43BBD460D1A /* SessionAndTokenTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4441CED4DFD0797D209C576E /* SessionAndTokenTests.swift */; };
 		B8F263D3F66C7BC3726FB949 /* MeterRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF17ADCFAF3E88A18BF1581 /* MeterRow.swift */; };
 		C209027608C3A53FF73AA941 /* ProviderGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91D0211E95CBAE23EC484B84 /* ProviderGlyph.swift */; };
+		C385CD5FA0F8675123E6000E /* LegacySettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2C1BAB5BB4A683725F4B77 /* LegacySettingsTests.swift */; };
 		C8FBD69FC161645423B33996 /* Credential.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB5E4BDF86C7BBEF91944E5 /* Credential.swift */; };
 		CD712C84A9CA05CB667D354E /* ProviderState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E943F5F07C50756F8B4CF0A5 /* ProviderState.swift */; };
 		CECE9573DBC7B9F00CEF184F /* StatusPageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A7E9C537D53A8DCE40204C /* StatusPageTests.swift */; };
@@ -57,6 +58,7 @@
 		EBEDA145D80AFFF7EF263FD4 /* UsageSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE183EA0FF7E07B85B106397 /* UsageSnapshot.swift */; };
 		EE9F0F2BBC558A39D4EE860A /* MenuBarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4100DFD023216DB068572D /* MenuBarLabel.swift */; };
 		F0914C185CE7549978FBEAED /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD2FF9F7E8316E717D9200AB /* AppModel.swift */; };
+		F2FB239CABCE240B6B6E967E /* LegacySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A85043859C9453FB4913247 /* LegacySettings.swift */; };
 		F924D5F25996BAEF8C5CB7AA /* CodexAppServerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CC25658E3ACB7E66DA86FE8 /* CodexAppServerClient.swift */; };
 		F9903FFBE8178F1FAA130392 /* UsageFetchError.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF3B3CE15159251AD76FC6C3 /* UsageFetchError.swift */; };
 		FAEF21DC06B2AA2CB993D1A7 /* UsageFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 624674AE23E9DC10EF4D0B01 /* UsageFormatting.swift */; };
@@ -83,6 +85,7 @@
 		1EDE62D58F68491188AD48BC /* AppModelSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelSettingsTests.swift; sourceTree = "<group>"; };
 		20A132A668E812B1AEAB2D7C /* BlockingProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockingProcess.swift; sourceTree = "<group>"; };
 		2180A886FC3B5C91CD6FD847 /* LimitAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitAlertTests.swift; sourceTree = "<group>"; };
+		2C2C1BAB5BB4A683725F4B77 /* LegacySettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacySettingsTests.swift; sourceTree = "<group>"; };
 		38529FBA64690EDD683D5F53 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		3CC25658E3ACB7E66DA86FE8 /* CodexAppServerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexAppServerClient.swift; sourceTree = "<group>"; };
 		40462E490215E5F2696372DE /* CursorUsageFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorUsageFetcher.swift; sourceTree = "<group>"; };
@@ -100,6 +103,7 @@
 		6FCCBDB16C7B7951DC6CC03B /* CredentialPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialPrompt.swift; sourceTree = "<group>"; };
 		729D3E9F217E910FFE5C79DB /* LimitNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LimitNotifier.swift; sourceTree = "<group>"; };
 		73A60D83162B6AE97BF316AA /* AIUsageWidget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIUsageWidget.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A85043859C9453FB4913247 /* LegacySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacySettings.swift; sourceTree = "<group>"; };
 		7D7CBFAFA310F5F48EF4644A /* CodexUsageFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexUsageFetcher.swift; sourceTree = "<group>"; };
 		7EB5E4BDF86C7BBEF91944E5 /* Credential.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Credential.swift; sourceTree = "<group>"; };
 		851C0503B661EF3C14745E3D /* GrokUsageMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrokUsageMappingTests.swift; sourceTree = "<group>"; };
@@ -187,6 +191,7 @@
 				0E9DD899B30A5843CC13A028 /* CodexUsageMappingTests.swift */,
 				D80D14C959112EB74FF39781 /* CursorUsageMappingTests.swift */,
 				851C0503B661EF3C14745E3D /* GrokUsageMappingTests.swift */,
+				2C2C1BAB5BB4A683725F4B77 /* LegacySettingsTests.swift */,
 				2180A886FC3B5C91CD6FD847 /* LimitAlertTests.swift */,
 				F10B03740E5989D813F014E7 /* MenuBarMathTests.swift */,
 				4441CED4DFD0797D209C576E /* SessionAndTokenTests.swift */,
@@ -266,6 +271,7 @@
 				8730FAB6A8874D2CD9412A39 /* AppUpdater.swift */,
 				20A132A668E812B1AEAB2D7C /* BlockingProcess.swift */,
 				43A841F74A2821C84FD72190 /* LaunchAtLogin.swift */,
+				7A85043859C9453FB4913247 /* LegacySettings.swift */,
 				624674AE23E9DC10EF4D0B01 /* UsageFormatting.swift */,
 			);
 			path = Support;
@@ -384,6 +390,7 @@
 				B2E4B18A3EBF07D614A3E0DE /* CodexUsageMappingTests.swift in Sources */,
 				62677FADD9821D31095ACEFF /* CursorUsageMappingTests.swift in Sources */,
 				0E5F6F727F4ABD36DBE7E0A9 /* GrokUsageMappingTests.swift in Sources */,
+				C385CD5FA0F8675123E6000E /* LegacySettingsTests.swift in Sources */,
 				A53680C7AEDDA6804A3D37CE /* LimitAlertTests.swift in Sources */,
 				156BA78B5AEAF35D8D78D15E /* MenuBarMathTests.swift in Sources */,
 				B7BA02A75B45D43BBD460D1A /* SessionAndTokenTests.swift in Sources */,
@@ -417,6 +424,7 @@
 				61219C09396D591C4C9EF69B /* JSONFields.swift in Sources */,
 				22D1575EFAB506E1BEFBFEA6 /* KeychainCredentialStore.swift in Sources */,
 				AB6499B06FB764E18393E31B /* LaunchAtLogin.swift in Sources */,
+				F2FB239CABCE240B6B6E967E /* LegacySettings.swift in Sources */,
 				A9710EB6A9510A8B0289CD83 /* LimitAlerts.swift in Sources */,
 				777F5677A6FA2EF943C3D2F3 /* LimitNotifier.swift in Sources */,
 				EE9F0F2BBC558A39D4EE860A /* MenuBarLabel.swift in Sources */,
@@ -527,7 +535,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.hgrafa.ai-usage-widget.tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.hgrafa.ai-usage-tracker.tests";
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AI Usage.app/Contents/MacOS/AI Usage";
 			};
@@ -551,7 +559,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.hgrafa.ai-usage-widget";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.hgrafa.ai-usage-tracker";
 				PRODUCT_MODULE_NAME = AIUsageWidget;
 				PRODUCT_NAME = "AI Usage";
 				SDKROOT = macosx;
@@ -576,7 +584,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.hgrafa.ai-usage-widget";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.hgrafa.ai-usage-tracker";
 				PRODUCT_MODULE_NAME = AIUsageWidget;
 				PRODUCT_NAME = "AI Usage";
 				SDKROOT = macosx;
@@ -597,7 +605,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.hgrafa.ai-usage-widget.tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.hgrafa.ai-usage-tracker.tests";
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AI Usage.app/Contents/MacOS/AI Usage";
 			};
