@@ -1,9 +1,17 @@
 import SwiftUI
 
+/// Owned by the status bar controller so closing the popover can send it back to the usage view.
+@MainActor
+final class PopoverRoute: ObservableObject {
+    @Published var showingSettings = false
+}
+
 struct UsagePopover: View {
     @ObservedObject var model: AppModel
     @ObservedObject var updater: AppUpdater
-    @State private var showingSettings = false
+    @ObservedObject var route: PopoverRoute
+
+    private var showingSettings: Bool { route.showingSettings }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -15,7 +23,7 @@ struct UsagePopover: View {
                     var transaction = Transaction()
                     transaction.disablesAnimations = true
                     withTransaction(transaction) {
-                        showingSettings.toggle()
+                        route.showingSettings.toggle()
                     }
                 }
             }
@@ -38,9 +46,6 @@ struct UsagePopover: View {
         .preferredColorScheme(.dark)
         .onAppear {
             model.refreshIfStale()
-        }
-        .onDisappear {
-            showingSettings = false
         }
     }
 

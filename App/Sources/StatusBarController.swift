@@ -7,12 +7,13 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private let model: AppModel
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let popover = NSPopover()
+    private let route = PopoverRoute()
     private var observation: AnyCancellable?
 
     init(model: AppModel, updater: AppUpdater) {
         self.model = model
         super.init()
-        let hosting = PopoverHostingController(rootView: UsagePopover(model: model, updater: updater))
+        let hosting = PopoverHostingController(rootView: UsagePopover(model: model, updater: updater, route: route))
         hosting.sizingOptions = .preferredContentSize
         hosting.safeAreaRegions = []
         popover.contentViewController = hosting
@@ -40,6 +41,7 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
 
     func popoverDidClose(_ notification: Notification) {
         statusItem.button?.highlight(false)
+        route.showingSettings = false
     }
 
     private func applyTitle() {
