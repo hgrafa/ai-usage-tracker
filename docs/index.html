@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:SOFT,opsz,wght@0..100,9..144,500..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4">
-  <script src="app.js?v=4" defer></script>
+  <link rel="stylesheet" href="styles.css?v=5">
+  <script src="app.js?v=5" defer></script>
 </head>
 <body>
   <a class="skip" href="#content">Skip to content</a>
@@ -23,8 +23,8 @@
         AI Usage
       </a>
       <nav class="nav-links" aria-label="On this page">
-        <a href="#try">Try it</a>
         <a href="#install">Install</a>
+        <a href="#try">Try it</a>
       </nav>
       <div class="nav-cta">
         <a class="gh" href="https://github.com/hgrafa/ai-usage-tracker/releases/latest" aria-label="Latest release on GitHub">
@@ -52,39 +52,6 @@
         <div class="screen screen-hero" data-screen="hero" data-native="980" data-min="1" data-max="1.32" data-min-height="640"
              role="img" aria-label="A Mac menu bar showing Claude 42%, Codex 18%, Cursor 73%, and Grok Bot 9%, with the AI Usage popover open below it."></div>
         <noscript><p class="fine">Turn on JavaScript to see the menu bar preview.</p></noscript>
-      </div>
-    </section>
-
-    <section class="try" id="try" aria-labelledby="try-title">
-      <div class="wide">
-        <h2 id="try-title">Try it.</h2>
-        <div class="studio">
-          <form class="controls" data-controls aria-label="Preview settings">
-            <fieldset>
-              <legend>Sections</legend>
-              <div class="rows" data-rows></div>
-            </fieldset>
-            <fieldset>
-              <legend>Menu bar</legend>
-              <div class="seg">
-                <label><input type="radio" name="theme" value="dark" checked><span>Dark</span></label>
-                <label><input type="radio" name="theme" value="light"><span>Light</span></label>
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend>Presets</legend>
-              <div class="presets">
-                <button type="button" data-preset="fresh">Fresh week</button>
-                <button type="button" data-preset="busy">Busy day</button>
-                <button type="button" data-preset="out">Almost out</button>
-              </div>
-            </fieldset>
-          </form>
-          <div class="preview">
-            <div class="screen screen-studio" data-screen="studio" data-native="720" data-min="1" data-max="1.15" data-min-height="560"
-                 role="img" aria-label="Live preview of the menu bar and popover." aria-live="polite"></div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -127,6 +94,57 @@
             <p>Not notarized yet. After the first block, choose Open Anyway in System Settings › Privacy &amp; Security.</p>
           </li>
         </ol>
+
+        <aside class="warn" role="note" aria-labelledby="warn-title">
+          <svg class="warn-icon" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10.3 3.9 1.8 18.5A2 2 0 0 0 3.5 21.5h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" fill="currentColor"/>
+            <path d="M12 9v5m0 3.2v.1" stroke="#121214" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <h3 id="warn-title">Mac says it can’t open the app?</h3>
+            <p>AI Usage is not notarized by Apple yet, so the first launch shows a warning that it can’t be verified. The app is safe to run. Allow it once:</p>
+            <ol>
+              <li>Open AI Usage from Applications and dismiss the warning.</li>
+              <li>Open System Settings and choose Privacy &amp; Security.</li>
+              <li>Scroll to the bottom, to the Security section.</li>
+              <li>Next to “AI Usage” was blocked, click Open Anyway, then confirm with your password or Touch ID.</li>
+            </ol>
+            <p>AI Usage opens in the menu bar. You only need to do this once.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="try" id="try" aria-labelledby="try-title">
+      <div class="wide">
+        <h2 id="try-title">Try it.</h2>
+        <div class="studio">
+          <form class="controls" data-controls aria-label="Preview settings">
+            <fieldset>
+              <legend>Sections</legend>
+              <div class="rows" data-rows></div>
+            </fieldset>
+            <fieldset>
+              <legend>Menu bar</legend>
+              <div class="seg">
+                <label><input type="radio" name="theme" value="dark" checked><span>Dark</span></label>
+                <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Presets</legend>
+              <div class="presets">
+                <button type="button" data-preset="fresh">Fresh week</button>
+                <button type="button" data-preset="busy">Busy day</button>
+                <button type="button" data-preset="out">Almost out</button>
+              </div>
+            </fieldset>
+          </form>
+          <div class="preview">
+            <div class="screen screen-studio" data-screen="studio" data-native="720" data-min="1" data-max="1.15" data-min-height="560"
+                 role="img" aria-label="Live preview of the menu bar and popover." aria-live="polite"></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
