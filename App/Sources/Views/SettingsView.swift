@@ -25,13 +25,10 @@ struct SettingsView: View {
             launchAtLoginControls
             Divider()
             updateControls
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
-            }
-            .controlSize(.small)
             Divider()
             Link(destination: URL(string: "https://buymeacoffee.com/hgrafa")!) {
-                Label("Buy me a coffee", systemImage: "cup.and.saucer")
+                Text("☕ Buy me a coffee")
+                    .foregroundStyle(.yellow)
             }
             .font(.caption)
         }

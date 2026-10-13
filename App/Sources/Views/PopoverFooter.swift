@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct PopoverFooter: View {
@@ -12,6 +13,10 @@ struct PopoverFooter: View {
             }
             .controlSize(.small)
             .disabled(model.isRefreshing)
+            Button("Quit") {
+                NSApplication.shared.terminate(nil)
+            }
+            .controlSize(.small)
         }
         .font(.caption)
     }
