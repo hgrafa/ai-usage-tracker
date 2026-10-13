@@ -196,6 +196,38 @@ a {
   font-size: 14px;
 }
 
+.nav-cta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gh {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.gh:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.gh-mark {
+  display: block;
+  fill: currentColor;
+}
+
 /* Hero */
 
 .hero {
@@ -636,37 +668,6 @@ a {
   }
 }
 
-/* Menu bar examples */
-
-.looks {
-  padding: 4rem 0 2rem;
-}
-
-.slices {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2.2rem 2rem;
-}
-
-.slices figure {
-  margin: 0;
-}
-
-.slice-wide {
-  grid-column: 1 / -1;
-}
-
-.screen-slice {
-  border-radius: 12px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.09), 0 30px 60px -40px rgba(0, 0, 0, 0.9);
-}
-
-.slices figcaption {
-  margin-top: 0.75rem;
-  color: var(--muted);
-  font-size: 15px;
-}
-
 /* Try it */
 
 .try {
@@ -1094,7 +1095,6 @@ a {
   text-underline-offset: 0.18em;
 }
 
-#looks,
 #try,
 #install {
   scroll-margin-top: 64px;
@@ -1124,7 +1124,7 @@ a {
     display: none;
   }
 
-  .btn-sm {
+  .nav-cta {
     margin-left: auto;
   }
 
@@ -1137,17 +1137,14 @@ a {
     font-size: 1.12rem;
   }
 
-  .slices {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .screen {
     border-radius: 12px;
   }
 }
 
 @media (pointer: coarse) {
-  .btn-sm {
+  .btn-sm,
+  .gh {
     height: 38px;
   }
 }
