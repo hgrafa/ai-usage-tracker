@@ -291,7 +291,7 @@
     var screen = buildScreen(el);
     var state = {
       theme: "dark",
-      on: { claude: true, codex: true, cursor: true, grok: false },
+      on: { claude: true, codex: false, cursor: true, grok: false },
       value: { claude: 42, codex: 18, cursor: 73, grok: 9 },
       flags: { claude: false, codex: false, cursor: false }
     };
@@ -324,7 +324,9 @@
       });
     }
 
+    var hands = false;
     form.addEventListener("input", function (event) {
+      hands = true;
       var t = event.target;
       if (t.dataset.on) state.on[t.dataset.on] = t.checked;
       if (t.dataset.flag) state.flags[t.dataset.flag] = t.checked;
@@ -340,6 +342,7 @@
     form.addEventListener("click", function (event) {
       var button = event.target.closest("[data-preset]");
       if (!button) return;
+      hands = true;
       var from = Object.assign({}, state.value);
       var to = PRESETS[button.dataset.preset];
       ORDER.forEach(function (id) {
@@ -361,6 +364,21 @@
     screen.pop.classList.add("open");
     fit(screen);
     sync();
+    if (reduced) return;
+    // Same beat as the hero: Cursor leaves, Codex takes its place. Stops if the visitor touches a control.
+    var seen = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      seen.disconnect();
+      wait(1600).then(function () {
+        if (hands) return;
+        state.on.cursor = false;
+        state.on.codex = true;
+        rows.querySelector('[data-on="cursor"]').checked = false;
+        rows.querySelector('[data-on="codex"]').checked = true;
+        sync();
+      });
+    }, { threshold: 0.35 });
+    seen.observe(el);
   }
 
   function releaseLinks() {
