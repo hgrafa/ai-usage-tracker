@@ -28,7 +28,7 @@
         <a href="#install">Install</a>
         <a href="https://github.com/hgrafa/ai-usage-widget">GitHub</a>
       </nav>
-      <a class="btn btn-sm" data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest">Download</a>
+      <a class="btn btn-sm" data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest/download/AI-Usage.dmg">Download</a>
     </div>
   </header>
 
@@ -39,7 +39,7 @@
         <div class="hero-side">
           <p class="sub">Claude, Codex, Cursor, and Grok Bot usage, in your Mac menu bar.</p>
           <div class="actions">
-            <a class="btn" data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest">Download for Mac</a>
+            <a class="btn" data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest/download/AI-Usage.dmg">Download for Mac</a>
             <span class="fine">macOS 15+ · Free, open source<span data-version></span></span>
           </div>
         </div>
@@ -106,6 +106,14 @@
               </div>
             </fieldset>
             <fieldset>
+              <legend>Status</legend>
+              <div class="flags">
+                <label class="flag flag-degraded"><input type="checkbox" data-flag="claude">Claude degraded</label>
+                <label class="flag flag-down"><input type="checkbox" data-flag="codex">Codex downtime</label>
+                <label class="flag flag-down"><input type="checkbox" data-flag="cursor">Cursor outage</label>
+              </div>
+            </fieldset>
+            <fieldset>
               <legend>Presets</legend>
               <div class="presets">
                 <button type="button" data-preset="fresh">Fresh week</button>
@@ -134,7 +142,7 @@
               </div>
             </div>
             <h3>Download</h3>
-            <p><a data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest">AI-Usage.dmg</a> from the latest release.</p>
+            <p><a data-download href="https://github.com/hgrafa/ai-usage-widget/releases/latest/download/AI-Usage.dmg">AI-Usage.dmg</a> from the latest release.</p>
           </li>
           <li>
             <div class="art art-drag" aria-hidden="true">
@@ -172,7 +180,10 @@
         AI Usage
       </span>
       <span>Credentials stay in your Mac Keychain.</span>
-      <a href="https://github.com/hgrafa/ai-usage-widget">GitHub</a>
+      <span class="foot-links">
+        <a href="https://buymeacoffee.com/hgrafa">Buy me a coffee</a>
+        <a href="https://github.com/hgrafa/ai-usage-widget">GitHub</a>
+      </span>
     </div>
   </footer>
 </body>
