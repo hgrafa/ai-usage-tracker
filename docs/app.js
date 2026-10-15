@@ -98,6 +98,16 @@
     return '<div class="pp-sec"><div class="pp-head">' + glyph(reading[0]) + "<span>" + p.name + "</span>" + lamp + "</div>" + body + "</div>";
   }
 
+  // shortcut: hero Settings shows only the section toggles. The rest of SettingsView would make the loop tall.
+  function settingsHTML(enabled) {
+    var rows = ORDER.map(function (id) {
+      return '<label class="pp-check' + (enabled[id] ? " on" : "") + '" data-id="' + id + '"><i></i>' +
+        glyph(id) + "<span>" + PROVIDERS[id].name + "</span></label>";
+    }).join("");
+    return '<div class="pp-title"><span>Settings</span>' + GEAR.replace("pp-gear", "pp-gear on") + "</div>" +
+      '<div class="pp-kicker">Sections</div>' + rows;
+  }
+
   function popoverHTML(readings, flags) {
     var html = '<div class="pp-title"><span>AI Usage</span>' + GEAR + "</div>";
     if (!readings.length) html += '<div class="pp-empty">No sections. Turn one on in Settings.</div>';
@@ -206,78 +216,119 @@
 
   var screens = [];
 
-  // Hero: count up, move the pointer to the status item, click, open the popover.
+  // Hero loops one story: click the menu, see Claude and Cursor, change them in Settings, come back to Claude and Codex.
   function hero(el) {
     var screen = buildScreen(el);
-    // Two sections keep the hero short. Cursor leaves, Codex takes its place.
-    var claudeCursor = [["claude", 42], ["cursor", 73]];
-    var claudeCodex = [["claude", 42], ["codex", 18]];
-    var frame = function (readings, k) {
-      var scale = k == null ? 1 : k;
-      return { theme: "dark", readings: readings.map(function (r) { return [r[0], r[1] * scale]; }) };
-    };
-    function show(readings) {
-      render(screen, frame(readings));
-      screen.si.classList.add("active");
-      screen.pop.classList.add("open");
+    var first = [["claude", 42], ["cursor", 73]];
+    var second = [["claude", 42], ["codex", 18]];
+    var enabled = { claude: true, codex: false, cursor: true, grok: false };
+    var spot = { x: 0, y: 80, opacity: 0 };
+
+    function showUsage(readings, open) {
+      render(screen, { theme: "dark", readings: readings });
+      screen.si.classList.toggle("active", !!open);
+      screen.pop.classList.toggle("open", !!open);
     }
+
+    function showSettings() {
+      screen.body.innerHTML = settingsHTML(enabled);
+      place(screen);
+    }
+
+    function moveTo(target) {
+      var inner = screen.inner.getBoundingClientRect();
+      var box = target.getBoundingClientRect();
+      var next = {
+        x: (box.left - inner.left + Math.min(14, box.width * 0.35)) / screen.scale,
+        y: (box.top - inner.top + box.height * 0.55) / screen.scale,
+        opacity: 1
+      };
+      var anim = screen.pointer.animate(
+        [
+          { opacity: spot.opacity, transform: "translate(" + spot.x + "px," + spot.y + "px)" },
+          { opacity: 1, transform: "translate(" + next.x + "px," + next.y + "px)" }
+        ],
+        { duration: spot.opacity ? 520 : 800, easing: "cubic-bezier(.35,.7,.2,1)", fill: "forwards" }
+      );
+      spot = next;
+      return anim.finished;
+    }
+
+    function click() {
+      var at = "translate(" + spot.x + "px," + spot.y + "px)";
+      return screen.pointer.animate(
+        [{ transform: at }, { transform: at + " scale(.82)" }, { transform: at }],
+        { duration: 180, easing: "ease-out" }
+      ).finished;
+    }
+
+    function hidePointer() {
+      var at = "translate(" + spot.x + "px," + spot.y + "px)";
+      spot = { x: spot.x, y: spot.y, opacity: 0 };
+      return screen.pointer.animate(
+        [{ opacity: 1, transform: at }, { opacity: 0, transform: at }],
+        { duration: 250, fill: "forwards" }
+      ).finished;
+    }
+
     fit(screen);
-    if (reduced) {
-      show(claudeCursor);
-      return;
-    }
-    render(screen, frame(claudeCursor, 0));
+    showUsage(first, reduced);
+    if (reduced) return;
+
     var observer = new IntersectionObserver(function (entries) {
       if (!entries[0].isIntersecting) return;
       observer.disconnect();
-      intro();
+      play();
     }, { threshold: 0.35 });
     observer.observe(el);
 
-    function intro() {
-      tween(1100, function (k) {
-        screen.si.innerHTML = statusItemHTML(frame(claudeCursor, k).readings);
-      })
+    function play() {
+      enabled = { claude: true, codex: false, cursor: true, grok: false };
+      screen.pop.classList.remove("grow");
+      showUsage(first, false);
+      return wait(500)
+        .then(function () { return moveTo(screen.si); })
+        .then(click)
         .then(function () {
-          show(claudeCursor);
-          var inner = screen.inner.getBoundingClientRect();
-          var item = screen.si.getBoundingClientRect();
-          var x = (item.left - inner.left + item.width * 0.42) / screen.scale;
-          var y = 9;
-          var w = screen.inner.offsetWidth;
-          var h = screen.inner.offsetHeight;
-          return screen.pointer.animate(
-            [
-              { opacity: 0, transform: "translate(" + w * 0.62 + "px," + h * 0.78 + "px)" },
-              { opacity: 1, offset: 0.15 },
-              { opacity: 1, transform: "translate(" + x + "px," + y + "px)" }
-            ],
-            { duration: 1000, easing: "cubic-bezier(.35,.7,.2,1)", fill: "forwards" }
-          ).finished.then(function () { return { x: x, y: y }; });
+          screen.pop.classList.add("open", "grow");
+          screen.si.classList.add("active");
+          return wait(1300);
         })
-        .then(function (p) {
-          screen.pop.classList.add("grow");
-          var spot = "translate(" + p.x + "px," + p.y + "px)";
-          screen.pointer.animate(
-            [{ transform: spot }, { transform: spot + " scale(.82)" }, { transform: spot }],
-            { duration: 220, easing: "ease-out" }
-          );
-          return wait(1400).then(function () { return p; });
-        })
-        .then(function (p) {
+        .then(function () { return moveTo(screen.body.querySelector(".pp-gear")); })
+        .then(click)
+        .then(function () {
           screen.pop.classList.remove("grow");
-          show(claudeCodex);
-          return wait(1400).then(function () { return p; });
+          showSettings();
+          return wait(500);
         })
-        .then(function (p) {
-          screen.pointer.animate(
-            [
-              { opacity: 1, transform: "translate(" + p.x + "px," + p.y + "px)" },
-              { opacity: 0, transform: "translate(" + (p.x - 60) + "px," + (p.y + 220) + "px)" }
-            ],
-            { duration: 700, easing: "ease-in", fill: "forwards" }
-          );
-        });
+        .then(function () { return moveTo(screen.body.querySelector('[data-id="cursor"] i')); })
+        .then(click)
+        .then(function () {
+          enabled.cursor = false;
+          screen.body.querySelector('[data-id="cursor"]').classList.remove("on");
+          return wait(400);
+        })
+        .then(function () { return moveTo(screen.body.querySelector('[data-id="codex"] i')); })
+        .then(click)
+        .then(function () {
+          enabled.codex = true;
+          screen.body.querySelector('[data-id="codex"]').classList.add("on");
+          return wait(550);
+        })
+        .then(function () { return moveTo(screen.body.querySelector(".pp-gear")); })
+        .then(click)
+        .then(function () {
+          showUsage(second, true);
+          screen.pop.classList.add("grow");
+          return wait(1500);
+        })
+        .then(hidePointer)
+        .then(function () {
+          screen.pop.classList.remove("open", "grow");
+          screen.si.classList.remove("active");
+          return wait(600);
+        })
+        .then(play);
     }
   }
 
@@ -324,9 +375,7 @@
       });
     }
 
-    var hands = false;
     form.addEventListener("input", function (event) {
-      hands = true;
       var t = event.target;
       if (t.dataset.on) state.on[t.dataset.on] = t.checked;
       if (t.dataset.flag) state.flags[t.dataset.flag] = t.checked;
@@ -342,7 +391,6 @@
     form.addEventListener("click", function (event) {
       var button = event.target.closest("[data-preset]");
       if (!button) return;
-      hands = true;
       var from = Object.assign({}, state.value);
       var to = PRESETS[button.dataset.preset];
       ORDER.forEach(function (id) {
@@ -364,21 +412,6 @@
     screen.pop.classList.add("open");
     fit(screen);
     sync();
-    if (reduced) return;
-    // Same beat as the hero: Cursor leaves, Codex takes its place. Stops if the visitor touches a control.
-    var seen = new IntersectionObserver(function (entries) {
-      if (!entries[0].isIntersecting) return;
-      seen.disconnect();
-      wait(1600).then(function () {
-        if (hands) return;
-        state.on.cursor = false;
-        state.on.codex = true;
-        rows.querySelector('[data-on="cursor"]').checked = false;
-        rows.querySelector('[data-on="codex"]').checked = true;
-        sync();
-      });
-    }, { threshold: 0.35 });
-    seen.observe(el);
   }
 
   function releaseLinks() {
