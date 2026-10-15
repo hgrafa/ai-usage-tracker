@@ -17,9 +17,13 @@ struct AIUsageWidgetApp: App {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBar: StatusBarController?
+    private var bundleWatcher: BundleReplacementWatcher?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !AppModel.isRunningUnderTest else { return }
+        bundleWatcher = BundleReplacementWatcher { url in
+            AppRelaunch.openReplacement(at: url)
+        }
         LegacySettings.migrate()
         statusBar = StatusBarController(model: AppModel(), updater: AppUpdater())
     }

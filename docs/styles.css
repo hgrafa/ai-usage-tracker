@@ -480,9 +480,18 @@ a {
 }
 
 .pp-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding-bottom: 4px;
   font-size: 15px;
   font-weight: 600;
+}
+
+.pp-gear {
+  width: 14px;
+  height: 14px;
+  opacity: 0.5;
 }
 
 .pp-empty {
@@ -607,6 +616,11 @@ a {
   font-size: 10px;
 }
 
+.pp-actions {
+  display: flex;
+  gap: 6px;
+}
+
 .pp-btn {
   padding: 2px 8px;
   border-radius: 5px;
@@ -615,18 +629,33 @@ a {
   font-size: 11px;
 }
 
-.pp-settings {
-  display: flex;
+.lamp {
+  margin-left: auto;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 10px;
-  font-size: 11px;
+  gap: 5px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 10px;
+  font-weight: 500;
 }
 
-.pp-settings svg {
-  width: 10px;
-  height: 10px;
-  color: rgba(255, 255, 255, 0.55);
+.lamp i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: lamp-pulse 0.8s ease-in-out infinite alternate;
+}
+
+.lamp-degraded i { background: #ffe14a; }
+.lamp-down i { background: #ff4d4d; }
+
+@keyframes lamp-pulse {
+  from { opacity: 1; }
+  to { opacity: 0.2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lamp i { animation: none; }
 }
 
 .pointer {
@@ -881,6 +910,30 @@ a {
   outline: 2px solid var(--text);
 }
 
+.flags {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.flag input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--dot);
+}
+
+.flag-degraded { --dot: #ffe14a; }
+.flag-down { --dot: #ff5a5a; }
+
 .presets {
   display: flex;
   flex-wrap: wrap;
@@ -1127,8 +1180,13 @@ a {
   color: var(--text);
 }
 
-.foot a {
+.foot-links {
   margin-left: auto;
+  display: flex;
+  gap: 1.25rem;
+}
+
+.foot a {
   color: var(--text);
   text-underline-offset: 0.18em;
 }

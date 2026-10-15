@@ -78,24 +78,35 @@
       '<div class="m-c">' + percent + "% used · " + RESETS[meter[2]] + "</div></div>";
   }
 
-  function sectionHTML(reading) {
+  // Same words and colors as ServiceLevel in the app. A lamp only shows when flagged.
+  var STATUS = {
+    claude: { word: "Degraded", tone: "degraded" },
+    codex: { word: "Down", tone: "down" },
+    cursor: { word: "Down", tone: "down" }
+  };
+
+  var GEAR = '<svg class="pp-gear" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+
+  function sectionHTML(reading, status) {
     var p = PROVIDERS[reading[0]];
     var body = reading[1] == null
       ? '<div class="pp-note"><i class="spin"></i>Updating</div>'
       : p.meters.map(function (m) { return meterHTML(m, reading[1]); }).join("");
-    return '<div class="pp-sec"><div class="pp-head">' + glyph(reading[0]) + "<span>" + p.name + "</span></div>" + body + "</div>";
+    var lamp = status
+      ? '<span class="lamp lamp-' + status.tone + '"><i></i>' + status.word + "</span>"
+      : "";
+    return '<div class="pp-sec"><div class="pp-head">' + glyph(reading[0]) + "<span>" + p.name + "</span>" + lamp + "</div>" + body + "</div>";
   }
 
-  function popoverHTML(readings) {
-    var html = '<div class="pp-title">AI Usage</div>';
+  function popoverHTML(readings, flags) {
+    var html = '<div class="pp-title"><span>AI Usage</span>' + GEAR + "</div>";
     if (!readings.length) html += '<div class="pp-empty">No sections. Turn one on in Settings.</div>';
     readings.forEach(function (r, i) {
       if (i) html += '<hr class="pp-div">';
-      html += sectionHTML(r);
+      html += sectionHTML(r, flags && flags[r[0]] ? STATUS[r[0]] : null);
     });
     html += '<hr class="pp-div pp-div-foot">' +
-      '<div class="pp-foot"><span>Updated 1 min ago</span><span class="pp-btn">Refresh</span></div>' +
-      '<div class="pp-settings"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M3.5 2 6.5 5 3.5 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Settings</div>';
+      '<div class="pp-foot"><span>Updated 1 min ago</span><span class="pp-actions"><span class="pp-btn">Refresh</span><span class="pp-btn">Quit</span></span></div>';
     return html;
   }
 
@@ -144,7 +155,7 @@
   function render(screen, state) {
     screen.inner.classList.toggle("light", state.theme === "light");
     screen.si.innerHTML = statusItemHTML(state.readings);
-    if (screen.body) screen.body.innerHTML = popoverHTML(state.readings);
+    if (screen.body) screen.body.innerHTML = popoverHTML(state.readings, state.flags);
     place(screen);
   }
 
@@ -272,7 +283,8 @@
     var state = {
       theme: "dark",
       on: { claude: true, codex: true, cursor: true, grok: false },
-      value: { claude: 42, codex: 18, cursor: 73, grok: 9 }
+      value: { claude: 42, codex: 18, cursor: 73, grok: 9 },
+      flags: { claude: false, codex: false, cursor: false }
     };
     var rows = form.querySelector("[data-rows]");
     rows.innerHTML = ORDER.map(function (id) {
@@ -298,6 +310,7 @@
       });
       render(screen, {
         theme: state.theme,
+        flags: state.flags,
         readings: ORDER.filter(function (id) { return state.on[id]; }).map(function (id) { return [id, state.value[id]]; })
       });
     }
@@ -305,6 +318,7 @@
     form.addEventListener("input", function (event) {
       var t = event.target;
       if (t.dataset.on) state.on[t.dataset.on] = t.checked;
+      if (t.dataset.flag) state.flags[t.dataset.flag] = t.checked;
       if (t.dataset.v) {
         state.value[t.dataset.v] = +t.value;
         state.on[t.dataset.v] = true;
