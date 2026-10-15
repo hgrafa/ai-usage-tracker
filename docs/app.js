@@ -209,18 +209,24 @@
   // Hero: count up, move the pointer to the status item, click, open the popover.
   function hero(el) {
     var screen = buildScreen(el);
-    var target = [["claude", 42], ["codex", 18], ["cursor", 73], ["grok", 9]];
-    var at = function (k) {
-      return { theme: "dark", readings: target.map(function (r) { return [r[0], r[1] * k]; }) };
+    // Two sections keep the hero short. Cursor leaves, Codex takes its place.
+    var claudeCursor = [["claude", 42], ["cursor", 73]];
+    var claudeCodex = [["claude", 42], ["codex", 18]];
+    var frame = function (readings, k) {
+      var scale = k == null ? 1 : k;
+      return { theme: "dark", readings: readings.map(function (r) { return [r[0], r[1] * scale]; }) };
     };
-    fit(screen);
-    if (reduced) {
-      render(screen, at(1));
+    function show(readings) {
+      render(screen, frame(readings));
       screen.si.classList.add("active");
       screen.pop.classList.add("open");
+    }
+    fit(screen);
+    if (reduced) {
+      show(claudeCursor);
       return;
     }
-    render(screen, at(0));
+    render(screen, frame(claudeCursor, 0));
     var observer = new IntersectionObserver(function (entries) {
       if (!entries[0].isIntersecting) return;
       observer.disconnect();
@@ -230,10 +236,10 @@
 
     function intro() {
       tween(1100, function (k) {
-        screen.si.innerHTML = statusItemHTML(at(k).readings);
+        screen.si.innerHTML = statusItemHTML(frame(claudeCursor, k).readings);
       })
         .then(function () {
-          render(screen, at(1));
+          show(claudeCursor);
           var inner = screen.inner.getBoundingClientRect();
           var item = screen.si.getBoundingClientRect();
           var x = (item.left - inner.left + item.width * 0.42) / screen.scale;
@@ -250,8 +256,7 @@
           ).finished.then(function () { return { x: x, y: y }; });
         })
         .then(function (p) {
-          screen.si.classList.add("active");
-          screen.pop.classList.add("open", "grow");
+          screen.pop.classList.add("grow");
           var spot = "translate(" + p.x + "px," + p.y + "px)";
           screen.pointer.animate(
             [{ transform: spot }, { transform: spot + " scale(.82)" }, { transform: spot }],
@@ -261,6 +266,10 @@
         })
         .then(function (p) {
           screen.pop.classList.remove("grow");
+          show(claudeCodex);
+          return wait(1400).then(function () { return p; });
+        })
+        .then(function (p) {
           screen.pointer.animate(
             [
               { opacity: 1, transform: "translate(" + p.x + "px," + p.y + "px)" },
