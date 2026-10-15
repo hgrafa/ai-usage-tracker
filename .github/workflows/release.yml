@@ -29,11 +29,19 @@ jobs:
           CURRENT_PROJECT_VERSION: ${{ github.run_number }}
         run: scripts/package-dmg.sh
 
+      - name: Sign the update feed
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: scripts/make-appcast.sh "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/"
+
       - name: Attach disk image to the GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/AI-Usage.dmg
+          files: |
+            dist/AI-Usage.dmg
+            dist/appcast.xml
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

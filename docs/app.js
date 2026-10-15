@@ -28,7 +28,7 @@
     }
   };
 
-  var GAUGE = '<svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17a8 8 0 1 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17l3.6-4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.8"/></svg>';
+  var GAUGE = '<svg class="glyph" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17a8 8 0 1 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17l3.6-4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.8"/></svg>';
 
   var now = new Date();
   var RESETS = {
@@ -59,7 +59,7 @@
 
   function glyph(id) {
     var g = GLYPHS[id];
-    return '<svg class="glyph" viewBox="' + g.box + '" aria-hidden="true"><path fill-rule="' +
+    return '<svg class="glyph" width="18" height="18" viewBox="' + g.box + '" aria-hidden="true"><path fill-rule="' +
       (g.evenOdd ? "evenodd" : "nonzero") + '" d="' + g.d + '"/></svg>';
   }
 
@@ -69,14 +69,6 @@
       var value = r[1] == null ? "–" : Math.round(r[1]) + "%";
       return '<span class="si-r">' + glyph(r[0]) + '<span class="si-v">' + value + "</span></span>";
     }).join("");
-  }
-
-  function statusLabel(readings) {
-    if (!readings.length) return "AI Usage, no sections";
-    return readings.map(function (r) {
-      var name = PROVIDERS[r[0]].name;
-      return r[1] == null ? name + ", no reading" : name + " " + Math.round(r[1]) + " percent";
-    }).join(", ");
   }
 
   function meterHTML(meter, value) {
@@ -119,12 +111,12 @@
   }
 
   var SYS =
-    '<span class="sys sys-battery"><svg viewBox="0 0 26 13"><rect x=".75" y=".75" width="21.5" height="11.5" rx="3.2" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.2"/><rect x="2.5" y="2.5" width="15" height="8" rx="1.8"/><path d="M24 4.5v4a2 2 0 0 0 0-4Z" fill-opacity=".5"/></svg></span>' +
-    '<span class="sys sys-wifi"><svg viewBox="0 0 18 14"><path d="M9 13.2 6.5 10.4a3.6 3.6 0 0 1 5 0Zm-4.2-4.6a6.1 6.1 0 0 1 8.4 0l1.6-1.8a8.6 8.6 0 0 0-11.6 0Zm-3.3-3.6a10.8 10.8 0 0 1 15 0L18 3.2a13.3 13.3 0 0 0-18 0Z"/></svg></span>' +
-    '<span class="sys sys-search"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.8" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m10.2 10.2 4.3 4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>' +
-    '<span class="sys sys-cc"><svg viewBox="0 0 18 16"><rect x="1" y="2" width="16" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="4.5" cy="4.5" r="1.6"/><rect x="1" y="9" width="16" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="13.5" cy="11.5" r="1.6"/></svg></span>';
+    '<span class="sys sys-battery"><svg width="28" height="14" viewBox="0 0 26 13"><rect x=".75" y=".75" width="21.5" height="11.5" rx="3.2" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.2"/><rect x="2.5" y="2.5" width="15" height="8" rx="1.8"/><path d="M24 4.5v4a2 2 0 0 0 0-4Z" fill-opacity=".5"/></svg></span>' +
+    '<span class="sys sys-wifi"><svg width="18" height="14" viewBox="0 0 18 14"><path d="M9 13.2 6.5 10.4a3.6 3.6 0 0 1 5 0Zm-4.2-4.6a6.1 6.1 0 0 1 8.4 0l1.6-1.8a8.6 8.6 0 0 0-11.6 0Zm-3.3-3.6a10.8 10.8 0 0 1 15 0L18 3.2a13.3 13.3 0 0 0-18 0Z"/></svg></span>' +
+    '<span class="sys sys-search"><svg width="14" height="14" viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.8" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m10.2 10.2 4.3 4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>' +
+    '<span class="sys sys-cc"><svg width="16" height="14" viewBox="0 0 18 16"><rect x="1" y="2" width="16" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="4.5" cy="4.5" r="1.6"/><rect x="1" y="9" width="16" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="13.5" cy="11.5" r="1.6"/></svg></span>';
 
-  var POINTER = '<svg class="pointer" viewBox="0 0 22 30" aria-hidden="true"><path d="M2 2v22l5.4-5.2 3.6 8.4 3.6-1.6-3.5-8.2H18Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  var POINTER = '<svg class="pointer" width="20" height="27" viewBox="0 0 22 30" aria-hidden="true"><path d="M2 2v22l5.4-5.2 3.6 8.4 3.6-1.6-3.5-8.2H18Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
   function clockText() {
     var d = new Date();
@@ -135,13 +127,12 @@
 
   function buildScreen(el) {
     var kind = el.dataset.screen;
-    var menus = kind === "slice" ? "" :
-      "<b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>";
+    var menus = "<b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>";
     el.innerHTML =
       '<div class="screen-inner"><div class="wall"></div>' +
       '<div class="mb"><div class="mb-left">' + menus + "</div>" +
       '<div class="mb-right"><span class="si" data-si></span>' + SYS + '<span class="clock" data-clock></span></div></div>' +
-      (kind === "slice" ? "" : '<div class="pop" data-pop><span class="pop-arrow"></span><div class="pop-body" data-body></div></div>') +
+      '<div class="pop" data-pop><span class="pop-arrow"></span><div class="pop-body" data-body></div></div>' +
       (kind === "hero" ? POINTER : "") +
       "</div>";
     var screen = {
@@ -164,7 +155,6 @@
   function render(screen, state) {
     screen.inner.classList.toggle("light", state.theme === "light");
     screen.si.innerHTML = statusItemHTML(state.readings);
-    if (screen.kind === "slice") screen.el.setAttribute("aria-label", statusLabel(state.readings));
     if (screen.body) screen.body.innerHTML = popoverHTML(state.readings, state.flags);
     place(screen);
   }
@@ -196,14 +186,6 @@
     }
     screen.inner.style.height = height + "px";
     screen.el.style.height = height * screen.scale + "px";
-  }
-
-  function readingsFrom(list) {
-    if (!list) return [];
-    return list.split(",").map(function (pair) {
-      var parts = pair.split(":");
-      return [parts[0], parts[1] === "-" ? null : +parts[1]];
-    });
   }
 
   function wait(ms) {
@@ -288,12 +270,6 @@
           );
         });
     }
-  }
-
-  function slice(el) {
-    var screen = buildScreen(el);
-    fit(screen);
-    render(screen, { theme: el.dataset.theme, readings: readingsFrom(el.dataset.readings) });
   }
 
   var PRESETS = {
@@ -381,7 +357,7 @@
   function releaseLinks() {
     var slot = document.querySelector("[data-version]");
     if (!window.fetch) return;
-    fetch("https://api.github.com/repos/hgrafa/ai-usage-widget/releases/latest")
+    fetch("https://api.github.com/repos/hgrafa/ai-usage-tracker/releases/latest")
       .then(function (response) {
         if (!response.ok) throw new Error("release");
         return response.json();
@@ -393,13 +369,15 @@
             link.href = disk.browser_download_url;
           });
         }
-        if (slot && release.tag_name) slot.textContent = " · " + release.tag_name;
+        if (slot && release.tag_name) {
+          slot.textContent = release.tag_name;
+          slot.parentNode.setAttribute("aria-label", "Version " + release.tag_name + " on GitHub");
+        }
       })
       .catch(function () {});
   }
 
   function start() {
-    document.querySelectorAll('[data-screen="slice"]').forEach(slice);
     var heroEl = document.querySelector('[data-screen="hero"]');
     if (heroEl) hero(heroEl);
     var studioEl = document.querySelector('[data-screen="studio"]');

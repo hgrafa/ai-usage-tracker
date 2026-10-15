@@ -26,12 +26,12 @@ private struct MeterTrack: View {
 
     var body: some View {
         let clamped = min(1, max(0, fraction ?? 0))
-        let color = fraction == nil ? Color.white.opacity(0.45) : Theme.heatColor(for: clamped)
+        let color = fraction == nil ? Color.primary.opacity(0.45) : Theme.heatColor(for: clamped)
         let travel = max(0, width - Theme.knobSize)
         let origin = travel * clamped
         ZStack(alignment: .leading) {
             Capsule()
-                .fill(Color.white.opacity(0.16))
+                .fill(Color.primary.opacity(0.16))
                 .frame(height: Theme.meterTrackHeight)
             Capsule()
                 .fill(color)

@@ -24,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         bundleWatcher = BundleReplacementWatcher { url in
             AppRelaunch.openReplacement(at: url)
         }
-        statusBar = StatusBarController(model: AppModel())
+        LegacySettings.migrate()
+        statusBar = StatusBarController(model: AppModel(), updater: AppUpdater())
     }
 }

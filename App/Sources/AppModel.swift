@@ -9,10 +9,18 @@ final class AppModel: ObservableObject {
     @Published private(set) var serviceHealth: [ProviderID: ServiceHealth] = [:]
     @Published private(set) var isRefreshing = false
     @Published private(set) var lastRefreshAt: Date?
+    @Published private(set) var alertThresholds: Set<Int>
+    @Published private(set) var notificationPermission: NotificationPermission = .notAsked
+    @Published var showsProviderStatus: Bool {
+        didSet { defaults.set(showsProviderStatus, forKey: Self.showsProviderStatusKey) }
+    }
 
     static let autoRefreshInterval: TimeInterval = 10 * 60
     static let staleInterval: TimeInterval = 60
-    static let enabledSectionsKey = "enabledProviders"
+    nonisolated static let enabledSectionsKey = "enabledProviders"
+    nonisolated static let alertThresholdsKey = "limitAlertThresholds"
+    nonisolated static let announcedAlertsKey = "limitAlertsAnnounced"
+    nonisolated static let showsProviderStatusKey = "showsProviderStatus"
 
     var menuBarReadings: [MenuBarReading] {
         MenuBarMath.readings(in: phases, visible: visibleProviders)
@@ -37,6 +45,8 @@ final class AppModel: ObservableObject {
     private var refreshTask: Task<Void, Never>?
     private var refreshAgain = false
     private var autoRefreshTask: Task<Void, Never>?
+    private var alertTracker: LimitAlertTracker
+    private let notifier: LimitNotifier?
 
     init(
         store: KeychainCredentialStore = KeychainCredentialStore(),
@@ -48,12 +58,18 @@ final class AppModel: ObservableObject {
         self.registry = FetcherRegistry(store: store, locator: locator)
         self.defaults = defaults
         enabledProviders = EnabledSections(stored: defaults.stringArray(forKey: Self.enabledSectionsKey)).providers
+        showsProviderStatus = defaults.object(forKey: Self.showsProviderStatusKey) as? Bool ?? true
+        alertThresholds = AlertThresholds(stored: defaults.array(forKey: Self.alertThresholdsKey) as? [Int]).values
+        alertTracker = LimitAlertTracker(announced: defaults.dictionary(forKey: Self.announcedAlertsKey) as? [String: Int] ?? [:])
         if Self.isRunningUnderTest {
+            notifier = nil
             phases = Dictionary(uniqueKeysWithValues: ProviderID.allCases.map { ($0, ProviderPhase.unconfigured) })
         } else {
+            notifier = LimitNotifier()
             phases = Dictionary(uniqueKeysWithValues: ProviderID.allCases.map { ($0, ProviderPhase.loading(stale: nil)) })
             startAutoRefresh()
             refresh()
+            refreshNotificationPermission()
         }
     }
 
@@ -104,6 +120,39 @@ final class AppModel: ObservableObject {
         defaults.set(EnabledSections(providers: next).stored, forKey: Self.enabledSectionsKey)
         if enabled {
             refresh()
+        }
+    }
+
+    func isAlertThresholdEnabled(_ threshold: Int) -> Bool {
+        alertThresholds.contains(threshold)
+    }
+
+    func setAlertThreshold(_ threshold: Int, enabled: Bool) {
+        var next = alertThresholds
+        if enabled {
+            next.insert(threshold)
+        } else {
+            next.remove(threshold)
+        }
+        let thresholds = AlertThresholds(stored: Array(next))
+        guard thresholds.values != alertThresholds else { return }
+        alertThresholds = thresholds.values
+        defaults.set(thresholds.stored, forKey: Self.alertThresholdsKey)
+        guard enabled, let notifier else { return }
+        Task { @MainActor in
+            if self.notificationPermission == .notAsked {
+                self.notificationPermission = await notifier.requestPermission()
+            }
+            for snapshot in MenuBarMath.snapshots(from: self.visiblePhases) {
+                self.announceCrossings(in: snapshot)
+            }
+        }
+    }
+
+    func refreshNotificationPermission() {
+        guard let notifier else { return }
+        Task { @MainActor in
+            self.notificationPermission = await notifier.permission()
         }
     }
 
@@ -201,9 +250,18 @@ final class AppModel: ObservableObject {
         switch result {
         case .success(let snapshot):
             phases[provider] = .loaded(snapshot)
+            announceCrossings(in: snapshot)
         case .failure(let error):
             let message = oneLine(error.errorDescription ?? "The usage request failed.")
             phases[provider] = .failed(message: message, stale: stale)
+        }
+    }
+
+    private func announceCrossings(in snapshot: UsageSnapshot) {
+        let alerts = alertTracker.alerts(for: snapshot, thresholds: alertThresholds)
+        defaults.set(alertTracker.announced, forKey: Self.announcedAlertsKey)
+        for alert in alerts {
+            notifier?.post(alert)
         }
     }
 
