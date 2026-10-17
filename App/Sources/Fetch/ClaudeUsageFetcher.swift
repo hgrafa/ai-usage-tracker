@@ -9,8 +9,30 @@ enum ClaudeRequests {
         if value.lowercased().hasPrefix("cookie:") {
             value = String(value.dropFirst("cookie:".count)).trimmingCharacters(in: .whitespacesAndNewlines)
         }
+        let pairs = cookiePairs(value)
+        let session = pairs["sessionkey"] ?? pairs["sessiontoken"] ?? pairs["sessionkeyv3"]
+        if let session {
+            var header = "sessionKey=\(session)"
+            if let org = pairs["lastactiveorg"] {
+                header += "; lastActiveOrg=\(org)"
+            }
+            return header
+        }
         if value.contains("=") { return value }
         return "sessionKey=\(value)"
+    }
+
+    private static func cookiePairs(_ header: String) -> [String: String] {
+        var pairs: [String: String] = [:]
+        for part in header.split(whereSeparator: { $0 == ";" || $0 == "\n" || $0 == "\r" }) {
+            let piece = part.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let eq = piece.firstIndex(of: "=") else { continue }
+            let name = piece[..<eq].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let raw = piece[piece.index(after: eq)...].trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty, !raw.isEmpty, pairs[name] == nil else { continue }
+            pairs[name] = raw
+        }
+        return pairs
     }
 
     static func usageURL(orgID: String, probe: String? = nil) -> URL? {

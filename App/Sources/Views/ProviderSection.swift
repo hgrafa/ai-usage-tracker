@@ -93,7 +93,7 @@ struct ProviderSection: View {
     }
 
     private var showsSecretControls: Bool {
-        hasSavedSecret && (provider == .claude || provider == .cursor) && !isUnconfigured
+        hasSavedSecret && CredentialPrompt.prompt(for: provider)?.showsSecretField == true && !isUnconfigured
     }
 
     private var isUnconfigured: Bool {

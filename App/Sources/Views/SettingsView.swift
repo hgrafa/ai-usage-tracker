@@ -11,13 +11,26 @@ struct SettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             sectionTitle("Sections")
-            ForEach(ProviderID.allCases) { provider in
-                Toggle(provider.displayName, isOn: Binding(
-                    get: { model.isSectionEnabled(provider) },
-                    set: { model.setSectionEnabled(provider, enabled: $0) }
-                ))
-                .toggleStyle(.checkbox)
+            Text("Drag to set the order in the menu bar.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            List {
+                ForEach(model.providerOrder) { provider in
+                    Toggle(provider.displayName, isOn: Binding(
+                        get: { model.isSectionEnabled(provider) },
+                        set: { model.setSectionEnabled(provider, enabled: $0) }
+                    ))
+                    .toggleStyle(.checkbox)
+                }
+                .onMove(perform: model.moveProviders)
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .scrollDisabled(true)
+            .contentMargins(.horizontal, 0, for: .scrollContent)
+            .environment(\.defaultMinListRowHeight, 22)
+            .frame(height: CGFloat(model.providerOrder.count) * 26)
             Divider()
             VStack(alignment: .leading, spacing: 2) {
                 Toggle("Show provider status", isOn: $model.showsProviderStatus)

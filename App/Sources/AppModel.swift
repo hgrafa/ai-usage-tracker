@@ -6,6 +6,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var phases: [ProviderID: ProviderPhase]
     @Published private(set) var savedSecretProviders: Set<ProviderID> = []
     @Published private(set) var enabledProviders: Set<ProviderID>
+    @Published private(set) var providerOrder: [ProviderID]
     @Published private(set) var serviceHealth: [ProviderID: ServiceHealth] = [:]
     @Published private(set) var isRefreshing = false
     @Published private(set) var lastRefreshAt: Date?
@@ -18,6 +19,7 @@ final class AppModel: ObservableObject {
     static let autoRefreshInterval: TimeInterval = 10 * 60
     static let staleInterval: TimeInterval = 60
     nonisolated static let enabledSectionsKey = "enabledProviders"
+    nonisolated static let providerOrderKey = "providerOrder"
     nonisolated static let alertThresholdsKey = "limitAlertThresholds"
     nonisolated static let announcedAlertsKey = "limitAlertsAnnounced"
     nonisolated static let showsProviderStatusKey = "showsProviderStatus"
@@ -31,7 +33,7 @@ final class AppModel: ObservableObject {
     }
 
     var visibleProviders: [ProviderID] {
-        ProviderID.allCases.filter { enabledProviders.contains($0) }
+        ProviderOrder(providers: providerOrder).visible(enabledProviders)
     }
 
     private var visiblePhases: [ProviderID: ProviderPhase] {
@@ -58,6 +60,7 @@ final class AppModel: ObservableObject {
         self.registry = FetcherRegistry(store: store, locator: locator)
         self.defaults = defaults
         enabledProviders = EnabledSections(stored: defaults.stringArray(forKey: Self.enabledSectionsKey)).providers
+        providerOrder = ProviderOrder(stored: defaults.stringArray(forKey: Self.providerOrderKey)).providers
         showsProviderStatus = defaults.object(forKey: Self.showsProviderStatusKey) as? Bool ?? true
         alertThresholds = AlertThresholds(stored: defaults.array(forKey: Self.alertThresholdsKey) as? [Int]).values
         alertTracker = LimitAlertTracker(announced: defaults.dictionary(forKey: Self.announcedAlertsKey) as? [String: Int] ?? [:])
@@ -92,7 +95,7 @@ final class AppModel: ObservableObject {
     func saveSecret(for provider: ProviderID, value: String) {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        guard provider == .claude || provider == .cursor else { return }
+        guard CredentialPrompt.prompt(for: provider)?.showsSecretField == true else { return }
         let kind: CredentialKind = (provider == .claude || trimmed.contains("WorkosCursorSessionToken")) ? .sessionCookie : .apiKey
         do {
             try store.save(Credential(provider: provider, kind: kind, secret: trimmed))
@@ -121,6 +124,13 @@ final class AppModel: ObservableObject {
         if enabled {
             refresh()
         }
+    }
+
+    func moveProviders(from source: IndexSet, to destination: Int) {
+        let next = ProviderOrder(providers: providerOrder).moving(from: source, to: destination)
+        guard next.providers != providerOrder else { return }
+        providerOrder = next.providers
+        defaults.set(next.stored, forKey: Self.providerOrderKey)
     }
 
     func isAlertThresholdEnabled(_ threshold: Int) -> Bool {
@@ -188,9 +198,7 @@ final class AppModel: ObservableObject {
     }
 
     private func performRefresh() async {
-        savedSecretProviders = []
-        if store.contains(provider: .claude) { savedSecretProviders.insert(.claude) }
-        if store.contains(provider: .cursor) { savedSecretProviders.insert(.cursor) }
+        savedSecretProviders = Set(ProviderID.allCases.filter { store.contains(provider: $0) })
 
         var configured: [ProviderID] = []
         if savedSecretProviders.contains(.claude) { configured.append(.claude) }
@@ -198,6 +206,9 @@ final class AppModel: ObservableObject {
         if await tokens.hasCredential() {
             configured.append(.cursor)
             configured.append(.grok)
+        }
+        for provider in [ProviderID.openrouter, .deepseek, .moonshot] where savedSecretProviders.contains(provider) {
+            configured.append(provider)
         }
         configured = configured.filter { enabledProviders.contains($0) }
 

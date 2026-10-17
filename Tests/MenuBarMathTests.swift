@@ -204,6 +204,20 @@ final class MenuBarMathTests: XCTestCase {
         XCTAssertEqual(sections.stored, ["claude", "grok"])
     }
 
+    func testProviderOrderDefaultsAndKeepsNewProviders() {
+        XCTAssertEqual(ProviderOrder(stored: nil).providers, ProviderID.allCases)
+        let saved = ProviderOrder(stored: ["moonshot", "nope", "claude", "claude"])
+        XCTAssertEqual(
+            saved.providers,
+            [.moonshot, .claude, .codex, .cursor, .grok, .openrouter, .deepseek]
+        )
+        XCTAssertEqual(
+            Array(saved.moving(from: IndexSet(integer: 0), to: 2).providers.prefix(3)),
+            [.claude, .moonshot, .codex]
+        )
+        XCTAssertEqual(ProviderOrder.standard.visible([.grok, .claude]), [.claude, .grok])
+    }
+
     func testHeatThresholds() {
         XCTAssertEqual(MeterHeat.level(for: 0), .low)
         XCTAssertEqual(MeterHeat.level(for: 0.699), .low)

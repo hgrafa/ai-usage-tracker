@@ -11,6 +11,20 @@ final class ClaudeUsageMappingTests: XCTestCase {
             "sessionKey=abc; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
         )
         XCTAssertEqual(ClaudeRequests.cookieHeader(from: "Cookie: sessionKey=abc"), "sessionKey=abc")
+        XCTAssertEqual(ClaudeRequests.cookieHeader(from: "sessionToken=abc"), "sessionKey=abc")
+        XCTAssertEqual(
+            ClaudeRequests.cookieHeader(from: "sessionKeyV3=from-v3; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+            "sessionKey=from-v3; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+        )
+        let noisy = """
+        anthropic-device-id=device; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb; \
+        intercom-session-lupk8zyo=junk; sessionKey=sk-ant-sid02-test; sessionKeyLC=1792150996012; \
+        sessionKeyV3=sk-ant-sid02-other; cf_clearance=clearance
+        """
+        XCTAssertEqual(
+            ClaudeRequests.cookieHeader(from: noisy),
+            "sessionKey=sk-ant-sid02-test; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+        )
     }
 
     func testUsageRequestKeepsCookieOutOfTheURL() throws {
