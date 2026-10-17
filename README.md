@@ -1,6 +1,6 @@
 # AI Usage
 
-AI Usage is a macOS menu-bar app that shows how much of your Claude, Codex, Cursor, and Grok Bot allowances you have used.
+AI Usage is a macOS menu-bar app that shows how much of your Claude, Codex, Cursor, Grok Bot, OpenRouter, DeepSeek, and Moonshot allowances you have used.
 
 ## Install
 
@@ -48,7 +48,7 @@ xcodebuild -scheme AIUsageWidget -destination 'platform=macOS' -derivedDataPath 
 
 ### Claude
 
-Claude needs a session cookie you copy once. In claude.ai, open DevTools → Network, reload https://claude.ai/settings/usage, and copy that usage request's Cookie header (or only the `sessionKey` value). Paste it into the Claude section. The cookie is stored in the Keychain on this Mac.
+Claude needs a session cookie you copy once. In claude.ai, open DevTools → Network, reload https://claude.ai/settings/usage, and paste that usage request's Cookie header, `sessionKey=…`, or just the token. The app keeps `sessionKey` and `lastActiveOrg` and drops the rest. It is stored in the Keychain on this Mac.
 
 ### Codex
 
@@ -61,5 +61,17 @@ If you are signed in to the Cursor app, AI Usage reads the local session and req
 ### Grok Bot
 
 Grok Bot reuses the Cursor login. Sign in to Cursor, or set the Cursor token. There is no separate Grok API key.
+
+### OpenRouter
+
+Paste an API key from [OpenRouter keys](https://openrouter.ai/settings/keys). The app calls `GET /api/v1/key` and shows that key's spend cap, the tightest budget, and the free-model daily quota. A key with no cap shows today's, this week's, and this month's spend instead of a percent bar. Account-wide credits need a management key, which this app does not ask for.
+
+### DeepSeek
+
+Paste an API key from the [DeepSeek console](https://platform.deepseek.com/api_keys). The app calls `GET /user/balance` and shows the remaining balance. DeepSeek does not return a percent cap, so this row has no meter.
+
+### Moonshot
+
+Paste an API key from [Kimi](https://platform.kimi.ai) or [Moonshot China](https://platform.moonshot.cn). The app calls `GET /v1/users/me/balance`, trying `api.moonshot.ai` and then `api.moonshot.cn`. It shows the remaining balance. Moonshot does not return a percent cap, so this row has no meter.
 
 Launch at login and Quit live under Settings at the bottom of the popover.

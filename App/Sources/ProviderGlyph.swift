@@ -3,7 +3,7 @@ import SwiftUI
 
 enum ProviderGlyph {
     static func usesEvenOddFill(_ provider: ProviderID) -> Bool {
-        provider == .codex || provider == .grok
+        provider == .codex || provider == .grok || provider == .openrouter || provider == .moonshot
     }
 
     static func makePath(for provider: ProviderID) -> CGPath {
@@ -16,6 +16,12 @@ enum ProviderGlyph {
             SVGPathParser.path(from: cursorCube)
         case .grok:
             grokBotFace()
+        case .openrouter:
+            ring()
+        case .deepseek:
+            CGPath(ellipseIn: CGRect(x: 1, y: 1, width: 22, height: 22), transform: nil)
+        case .moonshot:
+            crescent()
         }
     }
 
@@ -46,6 +52,20 @@ enum ProviderGlyph {
         path.addPath(CGPath(roundedRect: CGRect(x: 1.5, y: 1.5, width: 21, height: 21), cornerWidth: 6.2, cornerHeight: 6.2, transform: nil))
         path.addPath(CGPath(roundedRect: CGRect(x: 7.4, y: 7.2, width: 3.5, height: 6.2), cornerWidth: 1.75, cornerHeight: 1.75, transform: nil))
         path.addPath(CGPath(roundedRect: CGRect(x: 13.1, y: 7.2, width: 3.5, height: 6.2), cornerWidth: 1.75, cornerHeight: 1.75, transform: nil))
+        return path
+    }
+
+    private static func ring() -> CGPath {
+        let path = CGMutablePath()
+        path.addEllipse(in: CGRect(x: 1, y: 1, width: 22, height: 22))
+        path.addEllipse(in: CGRect(x: 6.5, y: 6.5, width: 11, height: 11))
+        return path
+    }
+
+    private static func crescent() -> CGPath {
+        let path = CGMutablePath()
+        path.addEllipse(in: CGRect(x: 1, y: 1, width: 22, height: 22))
+        path.addEllipse(in: CGRect(x: 9, y: 2, width: 18, height: 20))
         return path
     }
 

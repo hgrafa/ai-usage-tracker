@@ -5,6 +5,9 @@ enum ProviderID: String, CaseIterable, Identifiable, Codable, Hashable, Sendable
     case codex
     case cursor
     case grok
+    case openrouter
+    case deepseek
+    case moonshot
 
     var id: String { rawValue }
 
@@ -14,6 +17,9 @@ enum ProviderID: String, CaseIterable, Identifiable, Codable, Hashable, Sendable
         case .codex: "Codex"
         case .cursor: "Cursor"
         case .grok: "Grok Bot"
+        case .openrouter: "OpenRouter"
+        case .deepseek: "DeepSeek"
+        case .moonshot: "Moonshot"
         }
     }
 }

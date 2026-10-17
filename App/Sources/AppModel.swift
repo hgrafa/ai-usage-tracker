@@ -92,7 +92,7 @@ final class AppModel: ObservableObject {
     func saveSecret(for provider: ProviderID, value: String) {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        guard provider == .claude || provider == .cursor else { return }
+        guard CredentialPrompt.prompt(for: provider)?.showsSecretField == true else { return }
         let kind: CredentialKind = (provider == .claude || trimmed.contains("WorkosCursorSessionToken")) ? .sessionCookie : .apiKey
         do {
             try store.save(Credential(provider: provider, kind: kind, secret: trimmed))
@@ -188,9 +188,7 @@ final class AppModel: ObservableObject {
     }
 
     private func performRefresh() async {
-        savedSecretProviders = []
-        if store.contains(provider: .claude) { savedSecretProviders.insert(.claude) }
-        if store.contains(provider: .cursor) { savedSecretProviders.insert(.cursor) }
+        savedSecretProviders = Set(ProviderID.allCases.filter { store.contains(provider: $0) })
 
         var configured: [ProviderID] = []
         if savedSecretProviders.contains(.claude) { configured.append(.claude) }
@@ -198,6 +196,9 @@ final class AppModel: ObservableObject {
         if await tokens.hasCredential() {
             configured.append(.cursor)
             configured.append(.grok)
+        }
+        for provider in [ProviderID.openrouter, .deepseek, .moonshot] where savedSecretProviders.contains(provider) {
+            configured.append(provider)
         }
         configured = configured.filter { enabledProviders.contains($0) }
 

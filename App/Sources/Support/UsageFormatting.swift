@@ -42,7 +42,16 @@ enum UsageFormatting {
     }
 
     static func dollars(cents: Double) -> String {
-        String(format: "$%.2f", locale: Locale(identifier: "en_US_POSIX"), cents / 100)
+        money(cents / 100)
+    }
+
+    static func money(_ amount: Double, currency: String = "USD") -> String {
+        let formatted = String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), amount)
+        switch currency.uppercased() {
+        case "USD": return "$\(formatted)"
+        case "CNY": return "¥\(formatted)"
+        default: return "\(currency.uppercased()) \(formatted)"
+        }
     }
 
     static func parseISO8601(_ string: String) -> Date? {
