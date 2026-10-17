@@ -2,7 +2,7 @@
   "use strict";
 
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var ORDER = ["claude", "codex", "cursor", "grok"];
+  var ORDER = ["claude", "codex", "cursor", "grok", "openrouter", "deepseek", "moonshot"];
 
   // Same marks the app draws in ProviderGlyph.swift.
   var GLYPHS = {
@@ -25,6 +25,22 @@
       box: "0 0 24 24",
       evenOdd: true,
       d: "M7.7 1.5h8.6a6.2 6.2 0 0 1 6.2 6.2v8.6a6.2 6.2 0 0 1-6.2 6.2H7.7a6.2 6.2 0 0 1-6.2-6.2V7.7a6.2 6.2 0 0 1 6.2-6.2ZM9.15 7.2a1.75 1.75 0 0 1 1.75 1.75v2.7a1.75 1.75 0 0 1-3.5 0v-2.7A1.75 1.75 0 0 1 9.15 7.2Zm5.7 0a1.75 1.75 0 0 1 1.75 1.75v2.7a1.75 1.75 0 0 1-3.5 0v-2.7a1.75 1.75 0 0 1 1.75-1.75Z"
+    },
+    openrouter: {
+      box: "0 0 24 24",
+      evenOdd: false,
+      d: "m15.6 2.2 6 3.8-6.4 2.4Z",
+      line: "M17.4 7.1A6.8 6.8 0 1 0 18.2 15"
+    },
+    deepseek: {
+      box: "0 0 24 24",
+      evenOdd: true,
+      d: "M3.2 13.2c0-3.1 3.1-5.7 7.4-5.7 2.6 0 4.7.9 6.1 2.1.4-1.1 1.5-1.9 2.8-1.9.4 0 .6.4.4.7-.5 1.1-1.6 1.9-2.9 2.1 1.1.7 1.8 1.7 1.8 2.9 0 2.4-2.6 4.3-6.1 4.3-1.1 0-2.1-.2-3-.6-.8 1.3-2.7 2.2-4.6 1.8.5-1.1.2-2.1-.3-2.9-.7-.8-.9-1.7-.9-2.8Zm11.2-.4a.85.85 0 1 0 0-1.7.85.85 0 0 0 0 1.7Z"
+    },
+    moonshot: {
+      box: "0 0 24 24",
+      evenOdd: true,
+      d: "M14.6 3.1a8.6 8.6 0 1 0 5.9 14.8 6.8 6.8 0 1 1-5.9-14.8Z"
     }
   };
 
@@ -42,7 +58,10 @@
     claude: { name: "Claude", meters: [["Session (5 hour)", 1, "session"], ["Weekly (7 day)", 0.6, "week"]] },
     codex: { name: "Codex", meters: [["Session (5 hour)", 1, "session"], ["Weekly (7 day)", 0.45, "week"]] },
     cursor: { name: "Cursor", meters: [["Cursor models", 1, "month"], ["Other models", 0.3, "month"]] },
-    grok: { name: "Grok Bot", meters: [["Weekly", 1, "week"]] }
+    grok: { name: "Grok Bot", meters: [["Weekly", 1, "week"]] },
+    openrouter: { name: "OpenRouter", meters: [["Key limit", 1, "month"]] },
+    deepseek: { name: "DeepSeek", meters: [["Balance", 1, "month"]] },
+    moonshot: { name: "Moonshot", meters: [["Balance", 1, "month"]] }
   };
 
   function resetHint(date) {
@@ -59,8 +78,10 @@
 
   function glyph(id) {
     var g = GLYPHS[id];
-    return '<svg class="glyph" width="18" height="18" viewBox="' + g.box + '" aria-hidden="true"><path fill-rule="' +
-      (g.evenOdd ? "evenodd" : "nonzero") + '" d="' + g.d + '"/></svg>';
+    var paths = "";
+    if (g.line) paths += '<path class="line" d="' + g.line + '"/>';
+    paths += '<path fill-rule="' + (g.evenOdd ? "evenodd" : "nonzero") + '" d="' + g.d + '"/>';
+    return '<svg class="glyph" width="18" height="18" viewBox="' + g.box + '" aria-hidden="true">' + paths + "</svg>";
   }
 
   function statusItemHTML(readings) {
@@ -221,7 +242,7 @@
     var screen = buildScreen(el);
     var first = [["claude", 42], ["cursor", 73]];
     var second = [["claude", 42], ["codex", 18]];
-    var enabled = { claude: true, codex: false, cursor: true, grok: false };
+    var enabled = { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false };
     var spot = { x: 0, y: 80, opacity: 0 };
 
     function showUsage(readings, open) {
@@ -283,7 +304,7 @@
     observer.observe(el);
 
     function play() {
-      enabled = { claude: true, codex: false, cursor: true, grok: false };
+      enabled = { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false };
       screen.pop.classList.remove("grow");
       showUsage(first, false);
       return wait(500)
@@ -333,17 +354,17 @@
   }
 
   var PRESETS = {
-    fresh: { claude: 4, codex: 2, cursor: 11, grok: 1 },
-    busy: { claude: 58, codex: 41, cursor: 73, grok: 22 },
-    out: { claude: 96, codex: 88, cursor: 91, grok: 79 }
+    fresh: { claude: 4, codex: 2, cursor: 11, grok: 1, openrouter: 3, deepseek: 6, moonshot: 2 },
+    busy: { claude: 58, codex: 41, cursor: 73, grok: 22, openrouter: 47, deepseek: 36, moonshot: 28 },
+    out: { claude: 96, codex: 88, cursor: 91, grok: 79, openrouter: 94, deepseek: 86, moonshot: 90 }
   };
 
   function studio(el, form) {
     var screen = buildScreen(el);
     var state = {
       theme: "dark",
-      on: { claude: true, codex: false, cursor: true, grok: false },
-      value: { claude: 42, codex: 18, cursor: 73, grok: 9 },
+      on: { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false },
+      value: { claude: 42, codex: 18, cursor: 73, grok: 9, openrouter: 25, deepseek: 12, moonshot: 8 },
       flags: { claude: false, codex: false, cursor: false }
     };
     var rows = form.querySelector("[data-rows]");
@@ -452,6 +473,18 @@
     }, 30000);
 
     releaseLinks();
+    slideProviders();
+  }
+
+  function slideProviders() {
+    if (reduced) return;
+    var track = document.querySelector(".providers-track");
+    var list = track && track.querySelector(".providers");
+    if (!track || !list) return;
+    var copy = list.cloneNode(true);
+    copy.setAttribute("aria-hidden", "true");
+    track.appendChild(copy);
+    track.classList.add("sliding");
   }
 
   if (document.fonts && document.fonts.ready) {
