@@ -12,6 +12,8 @@ struct UsageSnapshot: Equatable, Sendable {
     var resets: ResetInventory?
     /// Prepaid credits, extra usage, and banked limit resets. Nil until Claude usage has been read.
     var extras: ClaudeAccountExtras?
+    /// Where the numbers came from, when that is worth saying, such as a Claude Code login.
+    var source: String?
 
     init(
         provider: ProviderID,

@@ -209,7 +209,7 @@ final class MenuBarMathTests: XCTestCase {
         let saved = ProviderOrder(stored: ["moonshot", "nope", "claude", "claude"])
         XCTAssertEqual(
             saved.providers,
-            [.moonshot, .claude, .codex, .cursor, .grok, .openrouter, .deepseek]
+            [.moonshot, .claude, .codex, .cursor, .grok, .openrouter, .deepseek, .anthropic]
         )
         XCTAssertEqual(
             Array(saved.moving(from: IndexSet(integer: 0), to: 2).providers.prefix(3)),

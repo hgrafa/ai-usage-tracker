@@ -16,7 +16,7 @@ final class AppModel: ObservableObject {
         didSet { defaults.set(showsProviderStatus, forKey: Self.showsProviderStatusKey) }
     }
 
-    static let autoRefreshInterval: TimeInterval = 10 * 60
+    nonisolated static let autoRefreshInterval: TimeInterval = 2 * 60
     static let staleInterval: TimeInterval = 60
     nonisolated static let enabledSectionsKey = "enabledProviders"
     nonisolated static let providerOrderKey = "providerOrder"
@@ -48,6 +48,7 @@ final class AppModel: ObservableObject {
     private var refreshAgain = false
     private var autoRefreshTask: Task<Void, Never>?
     private var alertTracker: LimitAlertTracker
+    private var backoff = RefreshBackoff()
     private let notifier: LimitNotifier?
 
     init(
@@ -96,7 +97,15 @@ final class AppModel: ObservableObject {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         guard CredentialPrompt.prompt(for: provider)?.showsSecretField == true else { return }
-        let kind: CredentialKind = (provider == .claude || trimmed.contains("WorkosCursorSessionToken")) ? .sessionCookie : .apiKey
+        let kind: CredentialKind
+        switch provider {
+        case .claude:
+            kind = .sessionCookie
+        case .anthropic:
+            if case .consoleCookie = AnthropicAPISecret(paste: trimmed) { kind = .sessionCookie } else { kind = .apiKey }
+        default:
+            kind = trimmed.contains("WorkosCursorSessionToken") ? .sessionCookie : .apiKey
+        }
         do {
             try store.save(Credential(provider: provider, kind: kind, secret: trimmed))
         } catch {
@@ -200,20 +209,21 @@ final class AppModel: ObservableObject {
     private func performRefresh() async {
         savedSecretProviders = Set(ProviderID.allCases.filter { store.contains(provider: $0) })
 
-        var configured: [ProviderID] = []
-        if savedSecretProviders.contains(.claude) { configured.append(.claude) }
-        configured.append(.codex)
+        // Claude is always tried: a Claude Code login needs no saved secret.
+        var configured: [ProviderID] = [.claude, .codex]
         if await tokens.hasCredential() {
             configured.append(.cursor)
             configured.append(.grok)
         }
-        for provider in [ProviderID.openrouter, .deepseek, .moonshot] where savedSecretProviders.contains(provider) {
+        for provider in [ProviderID.openrouter, .deepseek, .moonshot, .anthropic] where savedSecretProviders.contains(provider) {
             configured.append(provider)
         }
-        configured = configured.filter { enabledProviders.contains($0) }
+        let now = Date()
+        let waiting = Set(configured.filter { backoff.isWaiting($0, now: now) })
+        configured = configured.filter { enabledProviders.contains($0) && !waiting.contains($0) }
 
         var stale: [ProviderID: UsageSnapshot] = [:]
-        for provider in ProviderID.allCases where enabledProviders.contains(provider) {
+        for provider in ProviderID.allCases where enabledProviders.contains(provider) && !waiting.contains(provider) {
             if configured.contains(provider) {
                 if let previous = MenuBarMath.snapshot(for: provider, in: phases) {
                     stale[provider] = previous
@@ -258,13 +268,10 @@ final class AppModel: ObservableObject {
     }
 
     private func apply(_ provider: ProviderID, result: Result<UsageSnapshot, UsageFetchError>, stale: UsageSnapshot?) {
-        switch result {
-        case .success(let snapshot):
-            phases[provider] = .loaded(snapshot)
+        backoff.record(provider, result: result, at: Date())
+        phases[provider] = Self.phase(after: result, stale: stale)
+        if case .success(let snapshot) = result {
             announceCrossings(in: snapshot)
-        case .failure(let error):
-            let message = oneLine(error.errorDescription ?? "The usage request failed.")
-            phases[provider] = .failed(message: message, stale: stale)
         }
     }
 
@@ -276,8 +283,18 @@ final class AppModel: ObservableObject {
         }
     }
 
-    private func oneLine(_ text: String) -> String {
-        text.split(whereSeparator: \.isNewline).first.map(String.init) ?? text
+    /// Nothing to read is not an error: the section shows how to set the provider up.
+    nonisolated static func phase(after result: Result<UsageSnapshot, UsageFetchError>, stale: UsageSnapshot?) -> ProviderPhase {
+        switch result {
+        case .success(let snapshot):
+            return .loaded(snapshot)
+        case .failure(.notConfigured):
+            return .unconfigured
+        case .failure(let error):
+            let text = error.errorDescription ?? "The usage request failed."
+            let message = text.split(whereSeparator: \.isNewline).first.map(String.init) ?? text
+            return .failed(message: message, stale: stale)
+        }
     }
 
     static var isRunningUnderTest: Bool {

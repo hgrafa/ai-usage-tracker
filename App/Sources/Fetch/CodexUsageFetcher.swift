@@ -8,28 +8,14 @@ enum CodexExecutable {
         homeDirectory: String? = nil,
         isExecutable: (String) -> Bool
     ) -> URL? {
-        if let pathEnvironment {
-            for directory in pathEnvironment.split(separator: ":") where !directory.isEmpty {
-                let candidate = URL(fileURLWithPath: String(directory)).appendingPathComponent("codex").path
-                if isExecutable(candidate) {
-                    return URL(fileURLWithPath: candidate)
-                }
-            }
-        }
-        // The official installer puts a native binary here. Menu-bar apps do not
-        // inherit a login shell PATH, so this is invisible unless we look it up.
-        if let homeDirectory, !homeDirectory.isEmpty {
-            let official = URL(fileURLWithPath: homeDirectory)
-                .appendingPathComponent(".local/bin/codex")
-                .path
-            if isExecutable(official) {
-                return URL(fileURLWithPath: official)
-            }
-        }
-        for candidate in fallbacks where isExecutable(candidate) {
-            return URL(fileURLWithPath: candidate)
-        }
-        return nil
+        CommandLocator.resolve(
+            command: "codex",
+            homeRelativePaths: [".local/bin/codex"],
+            fallbacks: fallbacks,
+            pathEnvironment: pathEnvironment,
+            homeDirectory: homeDirectory,
+            isExecutable: isExecutable
+        )
     }
 }
 
