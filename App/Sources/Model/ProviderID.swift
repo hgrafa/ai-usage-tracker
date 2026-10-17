@@ -8,6 +8,7 @@ enum ProviderID: String, CaseIterable, Identifiable, Codable, Hashable, Sendable
     case openrouter
     case deepseek
     case moonshot
+    case anthropic
 
     var id: String { rawValue }
 
@@ -20,6 +21,7 @@ enum ProviderID: String, CaseIterable, Identifiable, Codable, Hashable, Sendable
         case .openrouter: "OpenRouter"
         case .deepseek: "DeepSeek"
         case .moonshot: "Moonshot"
+        case .anthropic: "Anthropic API"
         }
     }
 }

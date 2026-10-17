@@ -90,6 +90,12 @@ struct ProviderSection: View {
         if let extras = snapshot.extras {
             ClaudeExtrasSection(extras: extras)
         }
+        if let source = snapshot.source {
+            Text(source)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .opacity(0.6)
+        }
     }
 
     private var showsSecretControls: Bool {

@@ -2,7 +2,7 @@
   "use strict";
 
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var ORDER = ["claude", "codex", "cursor", "grok", "openrouter", "deepseek", "moonshot"];
+  var ORDER = ["claude", "codex", "cursor", "grok", "openrouter", "deepseek", "moonshot", "anthropic"];
 
   // Same marks the app draws in ProviderGlyph.swift.
   var GLYPHS = {
@@ -41,6 +41,11 @@
       box: "0 0 24 24",
       evenOdd: true,
       d: "M14.6 3.1a8.6 8.6 0 1 0 5.9 14.8 6.8 6.8 0 1 1-5.9-14.8Z"
+    },
+    anthropic: {
+      box: "0 0 24 24",
+      evenOdd: true,
+      d: "M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"
     }
   };
 
@@ -61,7 +66,8 @@
     grok: { name: "Grok Bot", meters: [["Weekly", 1, "week"]] },
     openrouter: { name: "OpenRouter", meters: [["Key limit", 1, "month"]] },
     deepseek: { name: "DeepSeek", meters: [["Balance", 1, "month"]] },
-    moonshot: { name: "Moonshot", meters: [["Balance", 1, "month"]] }
+    moonshot: { name: "Moonshot", meters: [["Balance", 1, "month"]] },
+    anthropic: { name: "Anthropic API", meters: [["Spend", 1, "month"]] }
   };
 
   function resetHint(date) {
@@ -242,7 +248,7 @@
     var screen = buildScreen(el);
     var first = [["claude", 42], ["cursor", 73]];
     var second = [["claude", 42], ["codex", 18]];
-    var enabled = { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false };
+    var enabled = { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false, anthropic: false };
     var spot = { x: 0, y: 80, opacity: 0 };
 
     function showUsage(readings, open) {
@@ -304,7 +310,7 @@
     observer.observe(el);
 
     function play() {
-      enabled = { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false };
+      enabled = { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false, anthropic: false };
       screen.pop.classList.remove("grow");
       showUsage(first, false);
       return wait(500)
@@ -354,17 +360,17 @@
   }
 
   var PRESETS = {
-    fresh: { claude: 4, codex: 2, cursor: 11, grok: 1, openrouter: 3, deepseek: 6, moonshot: 2 },
-    busy: { claude: 58, codex: 41, cursor: 73, grok: 22, openrouter: 47, deepseek: 36, moonshot: 28 },
-    out: { claude: 96, codex: 88, cursor: 91, grok: 79, openrouter: 94, deepseek: 86, moonshot: 90 }
+    fresh: { claude: 4, codex: 2, cursor: 11, grok: 1, openrouter: 3, deepseek: 6, moonshot: 2, anthropic: 5 },
+    busy: { claude: 58, codex: 41, cursor: 73, grok: 22, openrouter: 47, deepseek: 36, moonshot: 28, anthropic: 33 },
+    out: { claude: 96, codex: 88, cursor: 91, grok: 79, openrouter: 94, deepseek: 86, moonshot: 90, anthropic: 84 }
   };
 
   function studio(el, form) {
     var screen = buildScreen(el);
     var state = {
       theme: "dark",
-      on: { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false },
-      value: { claude: 42, codex: 18, cursor: 73, grok: 9, openrouter: 25, deepseek: 12, moonshot: 8 },
+      on: { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false, anthropic: false },
+      value: { claude: 42, codex: 18, cursor: 73, grok: 9, openrouter: 25, deepseek: 12, moonshot: 8, anthropic: 14 },
       flags: { claude: false, codex: false, cursor: false }
     };
     var rows = form.querySelector("[data-rows]");

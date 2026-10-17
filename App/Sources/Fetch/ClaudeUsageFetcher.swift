@@ -123,6 +123,39 @@ enum ClaudeUsageMapping {
         throw UsageFetchError.message(noChatOrganizationMessage)
     }
 
+    static let claudeCodeSource = "From your Claude Code login"
+
+    /// The plan usage Claude Code reads (and the OAuth usage endpoint returns). It carries the
+    /// same windows as the claude.ai cookie path, plus extra usage in cents.
+    static func planSnapshot(from data: Data, fetchedAt: Date) throws -> UsageSnapshot {
+        var snapshot = try snapshot(from: data, fetchedAt: fetchedAt)
+        guard let object = JSONFields.decodeObject(data) else { throw UsageFetchError.malformed }
+        snapshot.extras = planExtras(from: object, now: fetchedAt)
+        snapshot.resets = inventory(combining: resetRead(from: data, now: fetchedAt))
+        snapshot.source = claudeCodeSource
+        return snapshot
+    }
+
+    private static func planExtras(from object: [String: Any], now: Date) -> ClaudeAccountExtras {
+        var extras = ClaudeAccountExtras(fableActive: fableIsActive(in: object))
+        if let extra = JSONFields.dictionary(object["extra_usage"]) {
+            extras.spentMinor = cents(extra["used_credits"]) ?? 0
+            extras.limitMinor = cents(extra["monthly_limit"]) ?? 0
+            if let currency = JSONFields.string(extra["currency"]) {
+                extras.currency = currency.uppercased()
+            }
+        }
+        let resets = parseLimitResets(object["cedar_ember"], now: now)
+        extras.limitResetsLeft = resets.left
+        extras.limitResetsEndAt = resets.endAt
+        return extras
+    }
+
+    private static func cents(_ value: Any?) -> Int? {
+        guard let number = JSONFields.double(value), number >= 0, number.isFinite else { return nil }
+        return Int(number.rounded())
+    }
+
     static func snapshot(from data: Data, fetchedAt: Date) throws -> UsageSnapshot {
         guard let object = JSONFields.decodeObject(data) else {
             throw UsageFetchError.malformed
@@ -144,7 +177,7 @@ enum ClaudeUsageMapping {
             percents.append(utilization)
             meters.append(meter(id: "weekly", title: "Weekly (7 day)", utilization: utilization, resets: window["resets_at"], now: fetchedAt))
         }
-        let segments = weeklySegments(from: object["limits"])
+        let segments = weeklySegments(in: object)
         let breakdown = segments.isEmpty ? nil : Breakdown(headline: nil, total: nil, segments: segments)
         if meters.isEmpty, breakdown == nil {
             throw UsageFetchError.malformed
@@ -171,26 +204,44 @@ enum ClaudeUsageMapping {
         )
     }
 
-    private static func weeklySegments(from value: Any?) -> [UsageSegment] {
+    /// Per-model weekly windows. Claude Code lists them in `model_scoped`; the usage endpoint
+    /// lists the same windows in `limits[]`, so `model_scoped` wins when both are present.
+    private static func weeklySegments(in object: [String: Any]) -> [UsageSegment] {
+        var rows: [(name: String, percent: Double)] = []
+        for item in object["model_scoped"] as? [Any] ?? [] {
+            guard let entry = item as? [String: Any],
+                  let name = JSONFields.string(entry["display_name"]),
+                  let percent = JSONFields.double(entry["utilization"])
+            else { continue }
+            rows.append((name, percent))
+        }
+        if rows.isEmpty {
+            rows = weeklyScopedRows(object["limits"])
+        }
+        return rows.enumerated().map { index, row in
+            UsageSegment(
+                id: "limit-\(index)",
+                title: row.name,
+                amount: row.percent,
+                displayValue: "\(Int(row.percent.rounded()))%",
+                color: palette[index % palette.count]
+            )
+        }
+    }
+
+    private static func weeklyScopedRows(_ value: Any?) -> [(name: String, percent: Double)] {
         guard let items = value as? [Any] else { return [] }
-        var segments: [UsageSegment] = []
+        var rows: [(name: String, percent: Double)] = []
         for item in items {
             guard let object = item as? [String: Any] else { continue }
-            guard let type = JSONFields.string(object["type"])?.lowercased(),
-                  type == "weekly_scoped" || type.contains("weekly_scoped")
+            guard let type = (JSONFields.string(object["type"]) ?? JSONFields.string(object["kind"]))?.lowercased(),
+                  type.contains("weekly_scoped")
             else { continue }
             guard let name = displayName(in: object) else { continue }
             guard let percent = JSONFields.double(object["utilization"]) ?? JSONFields.double(object["percent"]) else { continue }
-            let index = segments.count
-            segments.append(UsageSegment(
-                id: "limit-\(index)",
-                title: name,
-                amount: percent,
-                displayValue: "\(Int(percent.rounded()))%",
-                color: palette[index % palette.count]
-            ))
+            rows.append((name, percent))
         }
-        return segments
+        return rows
     }
 
     private static func displayName(in object: [String: Any]) -> String? {
@@ -201,6 +252,7 @@ enum ClaudeUsageMapping {
             return JSONFields.string(scope["display_name"])
                 ?? JSONFields.string(scope["displayName"])
                 ?? JSONFields.string(scope["model"])
+                ?? JSONFields.string(JSONFields.dictionary(scope["model"])?["display_name"])
         }
         if let scope = JSONFields.string(object["scope"]) { return scope }
         return JSONFields.string(object["model"])
@@ -365,9 +417,16 @@ enum ClaudeUsageMapping {
     }
 
     static func fableIsActive(in data: Data) -> Bool {
-        guard let object = JSONFields.decodeObject(data),
-              let limits = object["limits"] as? [Any]
-        else { return false }
+        guard let object = JSONFields.decodeObject(data) else { return false }
+        return fableIsActive(in: object)
+    }
+
+    private static func fableIsActive(in object: [String: Any]) -> Bool {
+        for item in object["model_scoped"] as? [Any] ?? [] {
+            guard let entry = item as? [String: Any], JSONFields.string(entry["display_name"]) == "Fable" else { continue }
+            return (JSONFields.double(entry["utilization"]) ?? 0) >= 1
+        }
+        guard let limits = object["limits"] as? [Any] else { return false }
         for item in limits {
             guard let entry = item as? [String: Any] else { continue }
             let scope = entry["scope"] as? [String: Any]
@@ -382,11 +441,55 @@ enum ClaudeUsageMapping {
 }
 
 struct ClaudeUsageFetcher: UsageFetcher {
-    var store: KeychainCredentialStore
-    var http: URLSessionHTTPClient
+    var store: any CredentialStoring
+    var http: any HTTPClient
+    var claudeCode: @Sendable () async -> ClaudeCodeRead = { await ClaudeCodeClient().read() }
+    var savedLogin: @Sendable (Date) -> ClaudeTokenRead = { ClaudeCodeCredentials().token(now: $0) }
     var now: @Sendable () -> Date = { Date() }
 
     func fetch() async throws -> UsageSnapshot {
+        let fetchedAt = now()
+        let hasCookie = store.contains(provider: .claude)
+        let code = await claudeCode()
+        let savedLogin = self.savedLogin
+        var route = await ClaudeSources.route(code: code, hasCookie: hasCookie, token: {
+            await Task.detached { savedLogin(fetchedAt) }.value
+        })
+        if case .token(let token) = route {
+            do {
+                return try await tokenSnapshot(token, fetchedAt: fetchedAt)
+            } catch UsageFetchError.unauthorized {
+                route = ClaudeSources.afterTokenRejected(hasCookie: hasCookie)
+            }
+        }
+        switch route {
+        case .claudeCode(let body):
+            return try ClaudeUsageMapping.planSnapshot(from: body, fetchedAt: fetchedAt)
+        case .cookie:
+            return try await cookieSnapshot()
+        case .note(let text):
+            return UsageSnapshot(provider: .claude, fetchedAt: fetchedAt, meters: [], note: text)
+        case .fail(let error):
+            throw error
+        case .token:
+            throw UsageFetchError.network
+        }
+    }
+
+    private func tokenSnapshot(_ token: String, fetchedAt: Date) async throws -> UsageSnapshot {
+        let response = try await http.send(ClaudeOAuthUsage.request(token: token))
+        if let failure = HTTPFailureMapper.map(
+            statusCode: response.statusCode,
+            body: response.body,
+            provider: .claude,
+            htmlMeansUnauthorized: false
+        ) {
+            throw failure
+        }
+        return try ClaudeUsageMapping.planSnapshot(from: response.body, fetchedAt: fetchedAt)
+    }
+
+    private func cookieSnapshot() async throws -> UsageSnapshot {
         let credential: Credential
         do {
             guard let stored = try store.load(provider: .claude) else {
@@ -496,5 +599,50 @@ struct ClaudeUsageFetcher: UsageFetcher {
         } catch {
             return nil
         }
+    }
+}
+
+enum ClaudeRoute: Equatable, Sendable {
+    case claudeCode(Data)
+    case token(String)
+    case cookie
+    /// Nothing to measure, but something worth saying, such as a Console login.
+    case note(String)
+    case fail(UsageFetchError)
+}
+
+/// Picks where Claude usage comes from: Claude Code first, then the login it saved,
+/// then a pasted claude.ai cookie. The cookie is only for people with no Claude Code login,
+/// so a Claude Code login that failed to answer never silently switches to it.
+enum ClaudeSources {
+    static let expiredMessage = "Claude Code's login has expired. Open Claude Code to refresh it."
+    static let consoleMessage = "Claude Code uses Console credits, which have no plan limits. Turn on Anthropic API in Settings to see them."
+
+    /// `token` reads the Keychain, so it is only called when Claude Code itself cannot answer.
+    static func route(code: ClaudeCodeRead, hasCookie: Bool, token: () async -> ClaudeTokenRead) async -> ClaudeRoute {
+        switch code {
+        case .usage(let body):
+            return .claudeCode(body)
+        case .noPlanLimits:
+            return hasCookie ? .cookie : .note(consoleMessage)
+        case .signedOut:
+            return hasCookie ? .cookie : .fail(.notConfigured)
+        case .unanswered:
+            if case .fresh(let value) = await token() { return .token(value) }
+            return .fail(.network)
+        case .unavailable:
+            switch await token() {
+            case .fresh(let value):
+                return .token(value)
+            case .expired:
+                return hasCookie ? .cookie : .fail(.message(expiredMessage))
+            case .missing:
+                return hasCookie ? .cookie : .fail(.notConfigured)
+            }
+        }
+    }
+
+    static func afterTokenRejected(hasCookie: Bool) -> ClaudeRoute {
+        hasCookie ? .cookie : .fail(.message(expiredMessage))
     }
 }
