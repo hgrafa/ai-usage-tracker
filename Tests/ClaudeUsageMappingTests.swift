@@ -150,12 +150,6 @@ final class ClaudeUsageMappingTests: XCTestCase {
         XCTAssertEqual(extras.extraCaption, "$25.00 of $20.00 · over limit")
         XCTAssertEqual(extras.extraFraction, 1)
 
-        XCTAssertEqual(ClaudeAccountExtras().reassurance, "No Fable or extra usage")
-        XCTAssertEqual(ClaudeAccountExtras(freeCreditsMinor: 100).reassurance, "No Fable usage")
-        XCTAssertEqual(ClaudeAccountExtras(fableActive: true).reassurance, "No extra usage")
-        XCTAssertNil(ClaudeAccountExtras(freeCreditsMinor: 100, fableActive: true).reassurance)
-        XCTAssertTrue(ClaudeUsageMapping.fableIsActive(in: Data(#"{"limits":[{"percent": 4, "scope": {"model": {"display_name": "Fable"}}}]}"#.utf8)))
-        XCTAssertFalse(ClaudeUsageMapping.fableIsActive(in: Data(#"{"limits":[{"percent": 0, "scope": {"model": {"display_name": "Fable"}}}]}"#.utf8)))
     }
 
     func testClaudeCodeUsageShowsTheSameRowsAsTheCookie() throws {
@@ -168,10 +162,8 @@ final class ClaudeUsageMappingTests: XCTestCase {
         XCTAssertEqual(snapshot.meters[1].fraction ?? -1, 0, accuracy: 0.000_001)
         XCTAssertEqual(snapshot.menuBarFraction ?? -1, 0.06, accuracy: 0.000_001)
         XCTAssertNil(snapshot.breakdown)
-        XCTAssertEqual(snapshot.source, ClaudeUsageMapping.claudeCodeSource)
         let extras = try XCTUnwrap(snapshot.extras)
         XCTAssertEqual(extras.spentMinor, 0)
-        XCTAssertEqual(extras.reassurance, "No Fable or extra usage")
         XCTAssertNil(snapshot.resets, "null reset blocks are not an answer")
     }
 
@@ -185,7 +177,6 @@ final class ClaudeUsageMappingTests: XCTestCase {
         let segments = try XCTUnwrap(both.breakdown).segments
         XCTAssertEqual(segments.map(\.title), ["Fable"], "model_scoped and limits describe the same window once")
         XCTAssertEqual(segments.map(\.amount), [41])
-        XCTAssertTrue(try XCTUnwrap(both.extras).fableActive)
     }
 
     func testPlanExtraUsageIsInCents() throws {
@@ -194,12 +185,6 @@ final class ClaudeUsageMappingTests: XCTestCase {
         XCTAssertEqual(extras.spentMinor, 27140)
         XCTAssertEqual(extras.limitMinor, 50000)
         XCTAssertEqual(extras.extraCaption, "$271.40 of $500.00 · 54%")
-        XCTAssertNil(extras.reassurance)
-    }
-
-    func testCookieUsageHasNoClaudeCodeSource() throws {
-        let snapshot = try ClaudeUsageMapping.snapshot(from: Data(Self.usage.utf8), fetchedAt: fetchedAt)
-        XCTAssertNil(snapshot.source)
     }
 
     /// Shaped like Claude Code's documented extra_usage example and its limits[] rows.

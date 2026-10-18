@@ -123,8 +123,6 @@ enum ClaudeUsageMapping {
         throw UsageFetchError.message(noChatOrganizationMessage)
     }
 
-    static let claudeCodeSource = "From your Claude Code login"
-
     /// The plan usage Claude Code reads (and the OAuth usage endpoint returns). It carries the
     /// same windows as the claude.ai cookie path, plus extra usage in cents.
     static func planSnapshot(from data: Data, fetchedAt: Date) throws -> UsageSnapshot {
@@ -132,12 +130,11 @@ enum ClaudeUsageMapping {
         guard let object = JSONFields.decodeObject(data) else { throw UsageFetchError.malformed }
         snapshot.extras = planExtras(from: object, now: fetchedAt)
         snapshot.resets = inventory(combining: resetRead(from: data, now: fetchedAt))
-        snapshot.source = claudeCodeSource
         return snapshot
     }
 
     private static func planExtras(from object: [String: Any], now: Date) -> ClaudeAccountExtras {
-        var extras = ClaudeAccountExtras(fableActive: fableIsActive(in: object))
+        var extras = ClaudeAccountExtras()
         if let extra = JSONFields.dictionary(object["extra_usage"]) {
             extras.spentMinor = cents(extra["used_credits"]) ?? 0
             extras.limitMinor = cents(extra["monthly_limit"]) ?? 0
@@ -415,29 +412,6 @@ enum ClaudeUsageMapping {
             resetsAt: JSONFields.date(from: json["disabled_until"])
         )
     }
-
-    static func fableIsActive(in data: Data) -> Bool {
-        guard let object = JSONFields.decodeObject(data) else { return false }
-        return fableIsActive(in: object)
-    }
-
-    private static func fableIsActive(in object: [String: Any]) -> Bool {
-        for item in object["model_scoped"] as? [Any] ?? [] {
-            guard let entry = item as? [String: Any], JSONFields.string(entry["display_name"]) == "Fable" else { continue }
-            return (JSONFields.double(entry["utilization"]) ?? 0) >= 1
-        }
-        guard let limits = object["limits"] as? [Any] else { return false }
-        for item in limits {
-            guard let entry = item as? [String: Any] else { continue }
-            let scope = entry["scope"] as? [String: Any]
-            let model = scope?["model"] as? [String: Any]
-            let name = JSONFields.string(model?["display_name"]) ?? JSONFields.string(entry["display_name"])
-            guard name == "Fable" else { continue }
-            let percent = JSONFields.double(entry["percent"]) ?? JSONFields.double(entry["utilization"]) ?? 0
-            return percent >= 1
-        }
-        return false
-    }
 }
 
 struct ClaudeUsageFetcher: UsageFetcher {
@@ -543,7 +517,7 @@ struct ClaudeUsageFetcher: UsageFetcher {
         async let overageBody = loadQuietly(ClaudeRequests.overageURL(orgID: orgID), cookie: cookie)
         async let resetBody = probe(orgID: orgID, cookie: cookie, query: "cedar_ember=1&skip_spend=1")
 
-        var extras = ClaudeAccountExtras(fableActive: ClaudeUsageMapping.fableIsActive(in: usageBody))
+        var extras = ClaudeAccountExtras()
         if let data = await creditsBody, let credits = ClaudeUsageMapping.freeCredits(from: data) {
             extras.freeCreditsMinor = credits.minor
             if let currency = credits.currency { extras.currency = currency }

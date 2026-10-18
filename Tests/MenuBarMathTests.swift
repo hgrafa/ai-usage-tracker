@@ -45,13 +45,19 @@ final class MenuBarMathTests: XCTestCase {
             MenuBarReading(provider: .cursor, percent: nil),
             MenuBarReading(provider: .grok, percent: 80)
         ]
-        let image = MenuBarTitle.statusImage(for: readings)
-        XCTAssertTrue(image.isTemplate)
+        let image = MenuBarTitle.statusImage(for: readings, color: .white)
+        XCTAssertFalse(image.isTemplate)
         XCTAssertGreaterThan(image.size.width, 80)
         XCTAssertEqual(MenuBarLabel.valueTitle(percent: 0), "0%")
         XCTAssertEqual(MenuBarLabel.valueTitle(percent: 12), "12%")
         XCTAssertEqual(MenuBarLabel.valueTitle(percent: nil), "–")
         XCTAssertEqual(MenuBarLabel.valueTitle(percent: 80), "80%")
+    }
+
+    @MainActor
+    func testMenuBarTextColorFollowsTheBarAppearance() {
+        XCTAssertEqual(MenuBarTitle.textColor(for: NSAppearance(named: .vibrantDark)!), .white)
+        XCTAssertEqual(MenuBarTitle.textColor(for: NSAppearance(named: .vibrantLight)!), .black)
     }
 
     func testNilWhenNoRealFraction() {

@@ -87,14 +87,8 @@ struct ProviderSection: View {
         if let breakdown = snapshot.breakdown {
             BreakdownChart(breakdown: breakdown)
         }
-        if let extras = snapshot.extras {
+        if let extras = snapshot.extras, extras.showsCreditSection || extras.limitResetCaption != nil {
             ClaudeExtrasSection(extras: extras)
-        }
-        if let source = snapshot.source {
-            Text(source)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .opacity(0.6)
         }
     }
 
@@ -223,7 +217,7 @@ private struct ClaudeExtrasSection: View {
                         .opacity(0.85)
                 }
             }
-            if let line = extras.limitResetCaption ?? extras.reassurance {
+            if let line = extras.limitResetCaption {
                 Text(line)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
