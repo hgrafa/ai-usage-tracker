@@ -1,4 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <circle cx="13.5" cy="13.5" r="7.2" fill="none" stroke="#F4F4F5" stroke-width="2.6"/>
-  <path d="M18.8 18.8 L25.2 25.2" fill="none" stroke="#F4F4F5" stroke-width="2.8" stroke-linecap="round"/>
+  <style>
+    path { stroke: #121214; }
+    @media (prefers-color-scheme: dark) { path { stroke: #F4F4F5; } }
+  </style>
+  <path d="M6.47 24.5 A11 11 0 1 1 25.53 24.5" fill="none" stroke-width="3" stroke-linecap="round"/>
+  <path d="M16 19 L20.5 13.64" fill="none" stroke-width="3" stroke-linecap="round"/>
 </svg>

@@ -9,6 +9,7 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private let popover = NSPopover()
     private let route = PopoverRoute()
     private var observation: AnyCancellable?
+    private var appearanceObservation: NSKeyValueObservation?
 
     init(model: AppModel, updater: AppUpdater) {
         self.model = model
@@ -25,6 +26,11 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
             button.target = self
             button.action = #selector(togglePopover(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+            appearanceObservation = button.observe(\.effectiveAppearance) { [weak self] _, _ in
+                Task { @MainActor in
+                    self?.applyTitle()
+                }
+            }
         }
         observation = model.objectWillChange.sink { [weak self] _ in
             Task { @MainActor in
@@ -44,9 +50,10 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     }
 
     private func applyTitle() {
-        let image = MenuBarTitle.statusImage(for: model.menuBarReadings)
-        statusItem.length = max(image.size.width, 28)
         guard let button = statusItem.button else { return }
+        let color = MenuBarTitle.textColor(for: button.effectiveAppearance)
+        let image = MenuBarTitle.statusImage(for: model.menuBarReadings, color: color)
+        statusItem.length = max(image.size.width, 28)
         button.image = image
         button.imageScaling = .scaleNone
         button.imagePosition = .imageOnly

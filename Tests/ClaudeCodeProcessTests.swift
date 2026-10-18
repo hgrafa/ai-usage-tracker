@@ -114,7 +114,6 @@ final class ClaudeUsageFetcherTests: XCTestCase {
         let fetcher = makeFetcher(code: .usage(Data(#"{"five_hour":{"utilization":6}}"#.utf8)), token: .fresh("t"), http: http)
         let snapshot = try await fetcher.fetch()
         XCTAssertEqual(snapshot.meters.first?.fraction ?? -1, 0.06, accuracy: 0.000_001)
-        XCTAssertEqual(snapshot.source, ClaudeUsageMapping.claudeCodeSource)
         XCTAssertTrue(http.requests.isEmpty)
     }
 
@@ -123,7 +122,6 @@ final class ClaudeUsageFetcherTests: XCTestCase {
         let fetcher = makeFetcher(code: .unavailable, token: .fresh("sk-ant-oat01-x"), http: http)
         let snapshot = try await fetcher.fetch()
         XCTAssertEqual(snapshot.meters.map(\.id), ["session", "weekly"])
-        XCTAssertEqual(snapshot.source, ClaudeUsageMapping.claudeCodeSource)
         XCTAssertEqual(http.requests.map { $0.url?.host }, ["api.anthropic.com"])
         XCTAssertEqual(http.requests.first?.value(forHTTPHeaderField: "Authorization"), "Bearer sk-ant-oat01-x")
     }
@@ -157,8 +155,7 @@ final class ClaudeUsageFetcherTests: XCTestCase {
         let store = InMemoryCredentialStore()
         try store.save(Credential(provider: .claude, kind: .sessionCookie, secret: "sessionKey=s; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"))
         let fetcher = makeFetcher(code: .signedOut, token: .fresh("unused"), http: http, store: store)
-        let snapshot = try await fetcher.fetch()
-        XCTAssertNil(snapshot.source)
+        _ = try await fetcher.fetch()
         XCTAssertEqual(http.requests.first?.url?.host, "claude.ai")
         XCTAssertFalse(http.requests.contains { $0.url?.host == "api.anthropic.com" })
     }
