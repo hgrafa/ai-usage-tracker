@@ -222,6 +222,8 @@ struct StatusPageFetcher: Sendable {
         } else {
             health[.claude] = .unavailable(pageURL: StatusPages.claudePage)
         }
+        // status.claude.com also covers the Claude API and Console.
+        health[.anthropic] = health[.claude]
         if let data = await openaiBody, let mapped = StatusPageMapping.codex(from: data) {
             health[.codex] = mapped
         } else {

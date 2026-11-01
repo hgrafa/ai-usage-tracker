@@ -2,7 +2,7 @@
   "use strict";
 
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var ORDER = ["claude", "codex", "cursor", "grok"];
+  var ORDER = ["claude", "codex", "cursor", "grok", "openrouter", "deepseek", "moonshot", "anthropic"];
 
   // Same marks the app draws in ProviderGlyph.swift.
   var GLYPHS = {
@@ -25,10 +25,31 @@
       box: "0 0 24 24",
       evenOdd: true,
       d: "M7.7 1.5h8.6a6.2 6.2 0 0 1 6.2 6.2v8.6a6.2 6.2 0 0 1-6.2 6.2H7.7a6.2 6.2 0 0 1-6.2-6.2V7.7a6.2 6.2 0 0 1 6.2-6.2ZM9.15 7.2a1.75 1.75 0 0 1 1.75 1.75v2.7a1.75 1.75 0 0 1-3.5 0v-2.7A1.75 1.75 0 0 1 9.15 7.2Zm5.7 0a1.75 1.75 0 0 1 1.75 1.75v2.7a1.75 1.75 0 0 1-3.5 0v-2.7a1.75 1.75 0 0 1 1.75-1.75Z"
+    },
+    openrouter: {
+      box: "0 0 24 24",
+      evenOdd: false,
+      d: "m15.6 2.2 6 3.8-6.4 2.4Z",
+      line: "M17.4 7.1A6.8 6.8 0 1 0 18.2 15"
+    },
+    deepseek: {
+      box: "0 0 24 24",
+      evenOdd: true,
+      d: "M3.2 13.2c0-3.1 3.1-5.7 7.4-5.7 2.6 0 4.7.9 6.1 2.1.4-1.1 1.5-1.9 2.8-1.9.4 0 .6.4.4.7-.5 1.1-1.6 1.9-2.9 2.1 1.1.7 1.8 1.7 1.8 2.9 0 2.4-2.6 4.3-6.1 4.3-1.1 0-2.1-.2-3-.6-.8 1.3-2.7 2.2-4.6 1.8.5-1.1.2-2.1-.3-2.9-.7-.8-.9-1.7-.9-2.8Zm11.2-.4a.85.85 0 1 0 0-1.7.85.85 0 0 0 0 1.7Z"
+    },
+    moonshot: {
+      box: "0 0 24 24",
+      evenOdd: true,
+      d: "M14.6 3.1a8.6 8.6 0 1 0 5.9 14.8 6.8 6.8 0 1 1-5.9-14.8Z"
+    },
+    anthropic: {
+      box: "0 0 24 24",
+      evenOdd: true,
+      d: "M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"
     }
   };
 
-  var GAUGE = '<svg class="glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17a8 8 0 1 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17l3.6-4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.8"/></svg>';
+  var GAUGE = '<svg class="glyph" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17a8 8 0 1 1 16 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17l3.6-4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.8"/></svg>';
 
   var now = new Date();
   var RESETS = {
@@ -42,7 +63,11 @@
     claude: { name: "Claude", meters: [["Session (5 hour)", 1, "session"], ["Weekly (7 day)", 0.6, "week"]] },
     codex: { name: "Codex", meters: [["Session (5 hour)", 1, "session"], ["Weekly (7 day)", 0.45, "week"]] },
     cursor: { name: "Cursor", meters: [["Cursor models", 1, "month"], ["Other models", 0.3, "month"]] },
-    grok: { name: "Grok Bot", meters: [["Weekly", 1, "week"]] }
+    grok: { name: "Grok Bot", meters: [["Weekly", 1, "week"]] },
+    openrouter: { name: "OpenRouter", meters: [["Key limit", 1, "month"]] },
+    deepseek: { name: "DeepSeek", meters: [["Balance", 1, "month"]] },
+    moonshot: { name: "Moonshot", meters: [["Balance", 1, "month"]] },
+    anthropic: { name: "Anthropic API", meters: [["Spend", 1, "month"]] }
   };
 
   function resetHint(date) {
@@ -59,8 +84,10 @@
 
   function glyph(id) {
     var g = GLYPHS[id];
-    return '<svg class="glyph" viewBox="' + g.box + '" aria-hidden="true"><path fill-rule="' +
-      (g.evenOdd ? "evenodd" : "nonzero") + '" d="' + g.d + '"/></svg>';
+    var paths = "";
+    if (g.line) paths += '<path class="line" d="' + g.line + '"/>';
+    paths += '<path fill-rule="' + (g.evenOdd ? "evenodd" : "nonzero") + '" d="' + g.d + '"/>';
+    return '<svg class="glyph" width="18" height="18" viewBox="' + g.box + '" aria-hidden="true">' + paths + "</svg>";
   }
 
   function statusItemHTML(readings) {
@@ -71,14 +98,6 @@
     }).join("");
   }
 
-  function statusLabel(readings) {
-    if (!readings.length) return "AI Usage, no sections";
-    return readings.map(function (r) {
-      var name = PROVIDERS[r[0]].name;
-      return r[1] == null ? name + ", no reading" : name + " " + Math.round(r[1]) + " percent";
-    }).join(", ");
-  }
-
   function meterHTML(meter, value) {
     var percent = Math.round(value * meter[1]);
     return '<div class="m"><div class="m-t">' + meter[0] + '</div>' +
@@ -86,34 +105,55 @@
       '<div class="m-c">' + percent + "% used · " + RESETS[meter[2]] + "</div></div>";
   }
 
-  function sectionHTML(reading) {
+  // Same words and colors as ServiceLevel in the app. A lamp only shows when flagged.
+  var STATUS = {
+    claude: { word: "Degraded", tone: "degraded" },
+    codex: { word: "Down", tone: "down" },
+    cursor: { word: "Down", tone: "down" }
+  };
+
+  var GEAR = '<svg class="pp-gear" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+
+  function sectionHTML(reading, status) {
     var p = PROVIDERS[reading[0]];
     var body = reading[1] == null
       ? '<div class="pp-note"><i class="spin"></i>Updating</div>'
       : p.meters.map(function (m) { return meterHTML(m, reading[1]); }).join("");
-    return '<div class="pp-sec"><div class="pp-head">' + glyph(reading[0]) + "<span>" + p.name + "</span></div>" + body + "</div>";
+    var lamp = status
+      ? '<span class="lamp lamp-' + status.tone + '"><i></i>' + status.word + "</span>"
+      : "";
+    return '<div class="pp-sec"><div class="pp-head">' + glyph(reading[0]) + "<span>" + p.name + "</span>" + lamp + "</div>" + body + "</div>";
   }
 
-  function popoverHTML(readings) {
-    var html = '<div class="pp-title">AI Usage</div>';
+  // shortcut: hero Settings shows only the section toggles. The rest of SettingsView would make the loop tall.
+  function settingsHTML(enabled) {
+    var rows = ORDER.map(function (id) {
+      return '<label class="pp-check' + (enabled[id] ? " on" : "") + '" data-id="' + id + '"><i></i>' +
+        glyph(id) + "<span>" + PROVIDERS[id].name + "</span></label>";
+    }).join("");
+    return '<div class="pp-title"><span>Settings</span>' + GEAR.replace("pp-gear", "pp-gear on") + "</div>" +
+      '<div class="pp-kicker">Sections</div>' + rows;
+  }
+
+  function popoverHTML(readings, flags) {
+    var html = '<div class="pp-title"><span>AI Usage</span>' + GEAR + "</div>";
     if (!readings.length) html += '<div class="pp-empty">No sections. Turn one on in Settings.</div>';
     readings.forEach(function (r, i) {
       if (i) html += '<hr class="pp-div">';
-      html += sectionHTML(r);
+      html += sectionHTML(r, flags && flags[r[0]] ? STATUS[r[0]] : null);
     });
     html += '<hr class="pp-div pp-div-foot">' +
-      '<div class="pp-foot"><span>Updated 1 min ago</span><span class="pp-btn">Refresh</span></div>' +
-      '<div class="pp-settings"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M3.5 2 6.5 5 3.5 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Settings</div>';
+      '<div class="pp-foot"><span>Updated 1 min ago</span><span class="pp-actions"><span class="pp-btn">Refresh</span><span class="pp-btn">Quit</span></span></div>';
     return html;
   }
 
   var SYS =
-    '<span class="sys sys-battery"><svg viewBox="0 0 26 13"><rect x=".75" y=".75" width="21.5" height="11.5" rx="3.2" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.2"/><rect x="2.5" y="2.5" width="15" height="8" rx="1.8"/><path d="M24 4.5v4a2 2 0 0 0 0-4Z" fill-opacity=".5"/></svg></span>' +
-    '<span class="sys sys-wifi"><svg viewBox="0 0 18 14"><path d="M9 13.2 6.5 10.4a3.6 3.6 0 0 1 5 0Zm-4.2-4.6a6.1 6.1 0 0 1 8.4 0l1.6-1.8a8.6 8.6 0 0 0-11.6 0Zm-3.3-3.6a10.8 10.8 0 0 1 15 0L18 3.2a13.3 13.3 0 0 0-18 0Z"/></svg></span>' +
-    '<span class="sys sys-search"><svg viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.8" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m10.2 10.2 4.3 4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>' +
-    '<span class="sys sys-cc"><svg viewBox="0 0 18 16"><rect x="1" y="2" width="16" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="4.5" cy="4.5" r="1.6"/><rect x="1" y="9" width="16" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="13.5" cy="11.5" r="1.6"/></svg></span>';
+    '<span class="sys sys-battery"><svg width="28" height="14" viewBox="0 0 26 13"><rect x=".75" y=".75" width="21.5" height="11.5" rx="3.2" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.2"/><rect x="2.5" y="2.5" width="15" height="8" rx="1.8"/><path d="M24 4.5v4a2 2 0 0 0 0-4Z" fill-opacity=".5"/></svg></span>' +
+    '<span class="sys sys-wifi"><svg width="18" height="14" viewBox="0 0 18 14"><path d="M9 13.2 6.5 10.4a3.6 3.6 0 0 1 5 0Zm-4.2-4.6a6.1 6.1 0 0 1 8.4 0l1.6-1.8a8.6 8.6 0 0 0-11.6 0Zm-3.3-3.6a10.8 10.8 0 0 1 15 0L18 3.2a13.3 13.3 0 0 0-18 0Z"/></svg></span>' +
+    '<span class="sys sys-search"><svg width="14" height="14" viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.8" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m10.2 10.2 4.3 4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>' +
+    '<span class="sys sys-cc"><svg width="16" height="14" viewBox="0 0 18 16"><rect x="1" y="2" width="16" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="4.5" cy="4.5" r="1.6"/><rect x="1" y="9" width="16" height="5" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="13.5" cy="11.5" r="1.6"/></svg></span>';
 
-  var POINTER = '<svg class="pointer" viewBox="0 0 22 30" aria-hidden="true"><path d="M2 2v22l5.4-5.2 3.6 8.4 3.6-1.6-3.5-8.2H18Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  var POINTER = '<svg class="pointer" width="20" height="27" viewBox="0 0 22 30" aria-hidden="true"><path d="M2 2v22l5.4-5.2 3.6 8.4 3.6-1.6-3.5-8.2H18Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
 
   function clockText() {
     var d = new Date();
@@ -124,13 +164,12 @@
 
   function buildScreen(el) {
     var kind = el.dataset.screen;
-    var menus = kind === "slice" ? "" :
-      "<b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>";
+    var menus = "<b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>";
     el.innerHTML =
       '<div class="screen-inner"><div class="wall"></div>' +
       '<div class="mb"><div class="mb-left">' + menus + "</div>" +
       '<div class="mb-right"><span class="si" data-si></span>' + SYS + '<span class="clock" data-clock></span></div></div>' +
-      (kind === "slice" ? "" : '<div class="pop" data-pop><span class="pop-arrow"></span><div class="pop-body" data-body></div></div>') +
+      '<div class="pop" data-pop><span class="pop-arrow"></span><div class="pop-body" data-body></div></div>' +
       (kind === "hero" ? POINTER : "") +
       "</div>";
     var screen = {
@@ -153,8 +192,7 @@
   function render(screen, state) {
     screen.inner.classList.toggle("light", state.theme === "light");
     screen.si.innerHTML = statusItemHTML(state.readings);
-    if (screen.kind === "slice") screen.el.setAttribute("aria-label", statusLabel(state.readings));
-    if (screen.body) screen.body.innerHTML = popoverHTML(state.readings);
+    if (screen.body) screen.body.innerHTML = popoverHTML(state.readings, state.flags);
     place(screen);
   }
 
@@ -187,14 +225,6 @@
     screen.el.style.height = height * screen.scale + "px";
   }
 
-  function readingsFrom(list) {
-    if (!list) return [];
-    return list.split(",").map(function (pair) {
-      var parts = pair.split(":");
-      return [parts[0], parts[1] === "-" ? null : +parts[1]];
-    });
-  }
-
   function wait(ms) {
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
   }
@@ -213,90 +243,135 @@
 
   var screens = [];
 
-  // Hero: count up, move the pointer to the status item, click, open the popover.
+  // Hero loops one story: click the menu, see Claude and Cursor, change them in Settings, come back to Claude and Codex.
   function hero(el) {
     var screen = buildScreen(el);
-    var target = [["claude", 42], ["codex", 18], ["cursor", 73], ["grok", 9]];
-    var at = function (k) {
-      return { theme: "dark", readings: target.map(function (r) { return [r[0], r[1] * k]; }) };
-    };
-    fit(screen);
-    if (reduced) {
-      render(screen, at(1));
-      screen.si.classList.add("active");
-      screen.pop.classList.add("open");
-      return;
+    var first = [["claude", 42], ["cursor", 73]];
+    var second = [["claude", 42], ["codex", 18]];
+    var enabled = { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false, anthropic: false };
+    var spot = { x: 0, y: 80, opacity: 0 };
+
+    function showUsage(readings, open) {
+      render(screen, { theme: "dark", readings: readings });
+      screen.si.classList.toggle("active", !!open);
+      screen.pop.classList.toggle("open", !!open);
     }
-    render(screen, at(0));
+
+    function showSettings() {
+      screen.body.innerHTML = settingsHTML(enabled);
+      place(screen);
+    }
+
+    function moveTo(target) {
+      var inner = screen.inner.getBoundingClientRect();
+      var box = target.getBoundingClientRect();
+      var next = {
+        x: (box.left - inner.left + Math.min(14, box.width * 0.35)) / screen.scale,
+        y: (box.top - inner.top + box.height * 0.55) / screen.scale,
+        opacity: 1
+      };
+      var anim = screen.pointer.animate(
+        [
+          { opacity: spot.opacity, transform: "translate(" + spot.x + "px," + spot.y + "px)" },
+          { opacity: 1, transform: "translate(" + next.x + "px," + next.y + "px)" }
+        ],
+        { duration: spot.opacity ? 520 : 800, easing: "cubic-bezier(.35,.7,.2,1)", fill: "forwards" }
+      );
+      spot = next;
+      return anim.finished;
+    }
+
+    function click() {
+      var at = "translate(" + spot.x + "px," + spot.y + "px)";
+      return screen.pointer.animate(
+        [{ transform: at }, { transform: at + " scale(.82)" }, { transform: at }],
+        { duration: 180, easing: "ease-out" }
+      ).finished;
+    }
+
+    function hidePointer() {
+      var at = "translate(" + spot.x + "px," + spot.y + "px)";
+      spot = { x: spot.x, y: spot.y, opacity: 0 };
+      return screen.pointer.animate(
+        [{ opacity: 1, transform: at }, { opacity: 0, transform: at }],
+        { duration: 250, fill: "forwards" }
+      ).finished;
+    }
+
+    fit(screen);
+    showUsage(first, reduced);
+    if (reduced) return;
+
     var observer = new IntersectionObserver(function (entries) {
       if (!entries[0].isIntersecting) return;
       observer.disconnect();
-      intro();
+      play();
     }, { threshold: 0.35 });
     observer.observe(el);
 
-    function intro() {
-      tween(1100, function (k) {
-        screen.si.innerHTML = statusItemHTML(at(k).readings);
-      })
+    function play() {
+      enabled = { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false, anthropic: false };
+      screen.pop.classList.remove("grow");
+      showUsage(first, false);
+      return wait(500)
+        .then(function () { return moveTo(screen.si); })
+        .then(click)
         .then(function () {
-          render(screen, at(1));
-          var inner = screen.inner.getBoundingClientRect();
-          var item = screen.si.getBoundingClientRect();
-          var x = (item.left - inner.left + item.width * 0.42) / screen.scale;
-          var y = 9;
-          var w = screen.inner.offsetWidth;
-          var h = screen.inner.offsetHeight;
-          return screen.pointer.animate(
-            [
-              { opacity: 0, transform: "translate(" + w * 0.62 + "px," + h * 0.78 + "px)" },
-              { opacity: 1, offset: 0.15 },
-              { opacity: 1, transform: "translate(" + x + "px," + y + "px)" }
-            ],
-            { duration: 1000, easing: "cubic-bezier(.35,.7,.2,1)", fill: "forwards" }
-          ).finished.then(function () { return { x: x, y: y }; });
-        })
-        .then(function (p) {
-          screen.si.classList.add("active");
           screen.pop.classList.add("open", "grow");
-          var spot = "translate(" + p.x + "px," + p.y + "px)";
-          screen.pointer.animate(
-            [{ transform: spot }, { transform: spot + " scale(.82)" }, { transform: spot }],
-            { duration: 220, easing: "ease-out" }
-          );
-          return wait(1400).then(function () { return p; });
+          screen.si.classList.add("active");
+          return wait(1300);
         })
-        .then(function (p) {
+        .then(function () { return moveTo(screen.body.querySelector(".pp-gear")); })
+        .then(click)
+        .then(function () {
           screen.pop.classList.remove("grow");
-          screen.pointer.animate(
-            [
-              { opacity: 1, transform: "translate(" + p.x + "px," + p.y + "px)" },
-              { opacity: 0, transform: "translate(" + (p.x - 60) + "px," + (p.y + 220) + "px)" }
-            ],
-            { duration: 700, easing: "ease-in", fill: "forwards" }
-          );
-        });
+          showSettings();
+          return wait(500);
+        })
+        .then(function () { return moveTo(screen.body.querySelector('[data-id="cursor"] i')); })
+        .then(click)
+        .then(function () {
+          enabled.cursor = false;
+          screen.body.querySelector('[data-id="cursor"]').classList.remove("on");
+          return wait(400);
+        })
+        .then(function () { return moveTo(screen.body.querySelector('[data-id="codex"] i')); })
+        .then(click)
+        .then(function () {
+          enabled.codex = true;
+          screen.body.querySelector('[data-id="codex"]').classList.add("on");
+          return wait(550);
+        })
+        .then(function () { return moveTo(screen.body.querySelector(".pp-gear")); })
+        .then(click)
+        .then(function () {
+          showUsage(second, true);
+          screen.pop.classList.add("grow");
+          return wait(1500);
+        })
+        .then(hidePointer)
+        .then(function () {
+          screen.pop.classList.remove("open", "grow");
+          screen.si.classList.remove("active");
+          return wait(600);
+        })
+        .then(play);
     }
   }
 
-  function slice(el) {
-    var screen = buildScreen(el);
-    fit(screen);
-    render(screen, { theme: el.dataset.theme, readings: readingsFrom(el.dataset.readings) });
-  }
-
   var PRESETS = {
-    fresh: { claude: 4, codex: 2, cursor: 11, grok: 1 },
-    busy: { claude: 58, codex: 41, cursor: 73, grok: 22 },
-    out: { claude: 96, codex: 88, cursor: 91, grok: 79 }
+    fresh: { claude: 4, codex: 2, cursor: 11, grok: 1, openrouter: 3, deepseek: 6, moonshot: 2, anthropic: 5 },
+    busy: { claude: 58, codex: 41, cursor: 73, grok: 22, openrouter: 47, deepseek: 36, moonshot: 28, anthropic: 33 },
+    out: { claude: 96, codex: 88, cursor: 91, grok: 79, openrouter: 94, deepseek: 86, moonshot: 90, anthropic: 84 }
   };
 
   function studio(el, form) {
     var screen = buildScreen(el);
     var state = {
       theme: "dark",
-      on: { claude: true, codex: true, cursor: true, grok: false },
-      value: { claude: 42, codex: 18, cursor: 73, grok: 9 }
+      on: { claude: true, codex: false, cursor: true, grok: false, openrouter: false, deepseek: false, moonshot: false, anthropic: false },
+      value: { claude: 42, codex: 18, cursor: 73, grok: 9, openrouter: 25, deepseek: 12, moonshot: 8, anthropic: 14 },
+      flags: { claude: false, codex: false, cursor: false }
     };
     var rows = form.querySelector("[data-rows]");
     rows.innerHTML = ORDER.map(function (id) {
@@ -322,6 +397,7 @@
       });
       render(screen, {
         theme: state.theme,
+        flags: state.flags,
         readings: ORDER.filter(function (id) { return state.on[id]; }).map(function (id) { return [id, state.value[id]]; })
       });
     }
@@ -329,6 +405,7 @@
     form.addEventListener("input", function (event) {
       var t = event.target;
       if (t.dataset.on) state.on[t.dataset.on] = t.checked;
+      if (t.dataset.flag) state.flags[t.dataset.flag] = t.checked;
       if (t.dataset.v) {
         state.value[t.dataset.v] = +t.value;
         state.on[t.dataset.v] = true;
@@ -367,7 +444,7 @@
   function releaseLinks() {
     var slot = document.querySelector("[data-version]");
     if (!window.fetch) return;
-    fetch("https://api.github.com/repos/hgrafa/ai-usage-widget/releases/latest")
+    fetch("https://api.github.com/repos/hgrafa/ai-usage-tracker/releases/latest")
       .then(function (response) {
         if (!response.ok) throw new Error("release");
         return response.json();
@@ -379,13 +456,15 @@
             link.href = disk.browser_download_url;
           });
         }
-        if (slot && release.tag_name) slot.textContent = " · " + release.tag_name;
+        if (slot && release.tag_name) {
+          slot.textContent = release.tag_name;
+          slot.parentNode.setAttribute("aria-label", "Version " + release.tag_name + " on GitHub");
+        }
       })
       .catch(function () {});
   }
 
   function start() {
-    document.querySelectorAll('[data-screen="slice"]').forEach(slice);
     var heroEl = document.querySelector('[data-screen="hero"]');
     if (heroEl) hero(heroEl);
     var studioEl = document.querySelector('[data-screen="studio"]');
@@ -400,6 +479,18 @@
     }, 30000);
 
     releaseLinks();
+    slideProviders();
+  }
+
+  function slideProviders() {
+    if (reduced) return;
+    var track = document.querySelector(".providers-track");
+    var list = track && track.querySelector(".providers");
+    if (!track || !list) return;
+    var copy = list.cloneNode(true);
+    copy.setAttribute("aria-hidden", "true");
+    track.appendChild(copy);
+    track.classList.add("sliding");
   }
 
   if (document.fonts && document.fonts.ready) {

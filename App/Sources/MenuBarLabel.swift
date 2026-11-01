@@ -7,8 +7,9 @@ struct MenuBarReading: Equatable {
 
 @MainActor
 enum MenuBarTitle {
-    /// One template image, so the menu bar tints the icons and percents with the system color.
-    static func statusImage(for readings: [MenuBarReading]) -> NSImage {
+    /// One image already in the menu bar's text color. A template image would let the menu bar tint it,
+    /// but on an inactive display macOS dims template images well below its own status icons.
+    static func statusImage(for readings: [MenuBarReading], color: NSColor) -> NSImage {
         let font = NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .regular)
         let iconSide: CGFloat = 18
         let sidePad: CGFloat = 6
@@ -28,14 +29,13 @@ enum MenuBarTitle {
             width += CGFloat(readings.count - 1) * groupGap
         }
         let size = NSSize(width: max(width, 16), height: height)
-        let image = NSImage(size: size, flipped: true) { _ in
+        let image = NSImage(size: size, flipped: true) { bounds in
             var x = sidePad
             if readings.isEmpty {
                 if let symbol = NSImage(systemSymbolName: "gauge.medium", accessibilityDescription: "AI") {
                     let rect = NSRect(x: 0, y: (height - iconSide) / 2, width: iconSide, height: iconSide)
                     symbol.draw(in: rect)
                 }
-                return true
             }
             for (index, reading) in readings.enumerated() {
                 let iconRect = NSRect(x: x, y: (height - iconSide) / 2, width: iconSide, height: iconSide)
@@ -52,11 +52,18 @@ enum MenuBarTitle {
                     x += groupGap
                 }
             }
+            // Everything above is drawn black; recolor it in one pass.
+            color.set()
+            bounds.fill(using: .sourceAtop)
             return true
         }
-        image.isTemplate = true
         image.accessibilityDescription = readings.map(MenuBarLabel.itemLabel).joined(separator: ", ")
         return image
+    }
+
+    /// The menu bar's text color for an appearance: white on a dark bar, black on a light one.
+    static func textColor(for appearance: NSAppearance) -> NSColor {
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? .white : .black
     }
 }
 

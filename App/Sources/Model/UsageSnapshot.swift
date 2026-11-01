@@ -42,7 +42,6 @@ struct ClaudeAccountExtras: Equatable, Sendable {
     var extraResetsAt: Date?
     var limitResetsLeft: Int = 0
     var limitResetsEndAt: Date?
-    var fableActive: Bool = false
 
     var showsCreditSection: Bool { spentMinor > 0 || freeCreditsMinor > 0 }
 
@@ -85,15 +84,6 @@ struct ClaudeAccountExtras: Equatable, Sendable {
             return " until \(formatter.string(from: date.addingTimeInterval(-1)))"
         } ?? ""
         return "\(count) usage-limit reset\(count == 1 ? "" : "s") available\(until)"
-    }
-
-    /// Shown when there is no banked reset. Hidden once both Fable and extra usage are active.
-    var reassurance: String? {
-        if limitResetsLeft > 0 { return nil }
-        if fableActive && showsCreditSection { return nil }
-        if !fableActive && !showsCreditSection { return "No Fable or extra usage" }
-        if !showsCreditSection { return "No extra usage" }
-        return "No Fable usage"
     }
 }
 

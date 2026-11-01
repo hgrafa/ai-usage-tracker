@@ -11,6 +11,20 @@ final class ClaudeUsageMappingTests: XCTestCase {
             "sessionKey=abc; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
         )
         XCTAssertEqual(ClaudeRequests.cookieHeader(from: "Cookie: sessionKey=abc"), "sessionKey=abc")
+        XCTAssertEqual(ClaudeRequests.cookieHeader(from: "sessionToken=abc"), "sessionKey=abc")
+        XCTAssertEqual(
+            ClaudeRequests.cookieHeader(from: "sessionKeyV3=from-v3; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+            "sessionKey=from-v3; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+        )
+        let noisy = """
+        anthropic-device-id=device; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb; \
+        intercom-session-lupk8zyo=junk; sessionKey=sk-ant-sid02-test; sessionKeyLC=1792150996012; \
+        sessionKeyV3=sk-ant-sid02-other; cf_clearance=clearance
+        """
+        XCTAssertEqual(
+            ClaudeRequests.cookieHeader(from: noisy),
+            "sessionKey=sk-ant-sid02-test; lastActiveOrg=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+        )
     }
 
     func testUsageRequestKeepsCookieOutOfTheURL() throws {
@@ -136,12 +150,57 @@ final class ClaudeUsageMappingTests: XCTestCase {
         XCTAssertEqual(extras.extraCaption, "$25.00 of $20.00 · over limit")
         XCTAssertEqual(extras.extraFraction, 1)
 
-        XCTAssertEqual(ClaudeAccountExtras().reassurance, "No Fable or extra usage")
-        XCTAssertEqual(ClaudeAccountExtras(freeCreditsMinor: 100).reassurance, "No Fable usage")
-        XCTAssertEqual(ClaudeAccountExtras(fableActive: true).reassurance, "No extra usage")
-        XCTAssertNil(ClaudeAccountExtras(freeCreditsMinor: 100, fableActive: true).reassurance)
-        XCTAssertTrue(ClaudeUsageMapping.fableIsActive(in: Data(#"{"limits":[{"percent": 4, "scope": {"model": {"display_name": "Fable"}}}]}"#.utf8)))
-        XCTAssertFalse(ClaudeUsageMapping.fableIsActive(in: Data(#"{"limits":[{"percent": 0, "scope": {"model": {"display_name": "Fable"}}}]}"#.utf8)))
+    }
+
+    func testClaudeCodeUsageShowsTheSameRowsAsTheCookie() throws {
+        guard case .usage(let limits) = ClaudeCodeProtocol.read(usage: Data(ClaudeCodeTests.planUsage.utf8)) else {
+            return XCTFail("fixture should read as plan usage")
+        }
+        let snapshot = try ClaudeUsageMapping.planSnapshot(from: limits, fetchedAt: fetchedAt)
+        XCTAssertEqual(snapshot.meters.map(\.title), ["Session (5 hour)", "Weekly (7 day)"])
+        XCTAssertEqual(snapshot.meters[0].fraction ?? -1, 0.06, accuracy: 0.000_001)
+        XCTAssertEqual(snapshot.meters[1].fraction ?? -1, 0, accuracy: 0.000_001)
+        XCTAssertEqual(snapshot.menuBarFraction ?? -1, 0.06, accuracy: 0.000_001)
+        XCTAssertNil(snapshot.breakdown)
+        let extras = try XCTUnwrap(snapshot.extras)
+        XCTAssertEqual(extras.spentMinor, 0)
+        XCTAssertNil(snapshot.resets, "null reset blocks are not an answer")
+    }
+
+    func testPerModelWeeklyLimitsFromTheClaudeCodeShape() throws {
+        let fromLimits = try ClaudeUsageMapping.planSnapshot(from: Data(Self.planWithFable(modelScoped: false).utf8), fetchedAt: fetchedAt)
+        let limitSegments = try XCTUnwrap(fromLimits.breakdown).segments
+        XCTAssertEqual(limitSegments.map(\.title), ["Fable"])
+        XCTAssertEqual(limitSegments.map(\.displayValue), ["40%"])
+
+        let both = try ClaudeUsageMapping.planSnapshot(from: Data(Self.planWithFable(modelScoped: true).utf8), fetchedAt: fetchedAt)
+        let segments = try XCTUnwrap(both.breakdown).segments
+        XCTAssertEqual(segments.map(\.title), ["Fable"], "model_scoped and limits describe the same window once")
+        XCTAssertEqual(segments.map(\.amount), [41])
+    }
+
+    func testPlanExtraUsageIsInCents() throws {
+        let snapshot = try ClaudeUsageMapping.planSnapshot(from: Data(Self.planWithFable(modelScoped: false).utf8), fetchedAt: fetchedAt)
+        let extras = try XCTUnwrap(snapshot.extras)
+        XCTAssertEqual(extras.spentMinor, 27140)
+        XCTAssertEqual(extras.limitMinor, 50000)
+        XCTAssertEqual(extras.extraCaption, "$271.40 of $500.00 · 54%")
+    }
+
+    /// Shaped like Claude Code's documented extra_usage example and its limits[] rows.
+    private static func planWithFable(modelScoped: Bool) -> String {
+        """
+        {
+          "five_hour": {"utilization": 30, "resets_at": "2026-10-12T18:00:00Z"},
+          "seven_day": {"utilization": 12, "resets_at": "2026-10-19T00:00:00Z"},
+          "extra_usage": {"is_enabled": true, "monthly_limit": 50000, "used_credits": 27140, "utilization": 54, "currency": "USD"},
+          "limits": [
+            {"kind": "session", "group": "session", "percent": 30, "severity": "normal", "resets_at": "2026-10-12T18:00:00Z", "scope": null, "is_active": true},
+            {"kind": "weekly_all", "group": "weekly", "percent": 12, "severity": "normal", "resets_at": "2026-10-19T00:00:00Z", "scope": null, "is_active": false},
+            {"kind": "weekly_scoped", "group": "weekly", "percent": 40, "severity": "normal", "resets_at": "2026-10-19T00:00:00Z", "scope": {"model": {"display_name": "Fable"}}, "is_active": false}
+          ]\(modelScoped ? #", "model_scoped": [{"display_name": "Fable", "utilization": 41, "resets_at": "2026-10-19T00:00:00Z"}]"# : "")
+        }
+        """
     }
 
     func testNullResetBlockIsNotAnAnswer() {
