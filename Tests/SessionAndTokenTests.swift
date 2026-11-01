@@ -35,4 +35,29 @@ final class SessionAndTokenTests: XCTestCase {
         XCTAssertNil(TokenShape.bearerToken(from: "a..c"))
         XCTAssertNil(TokenShape.bearerToken(from: "a.b"))
     }
+
+    func testSealedCursorSessionOpensWithTheSafeStoragePassword() {
+        let sealed = "cursor-safe-storage:v1:djEwaTKn8QSpJ4aIH7pIsFHxMZXoxWvC8hfbRUPFq0/YaMY="
+        XCTAssertTrue(CursorSafeStorage.isSealed(sealed))
+        XCTAssertEqual(CursorSafeStorage.token(from: sealed, password: "test-password"), "header.payload.sig")
+        XCTAssertNil(CursorSafeStorage.token(from: sealed, password: "wrong-password"))
+        XCTAssertNil(CursorSafeStorage.token(from: "cursor-safe-storage:v1:djEx", password: "test-password"))
+        XCTAssertEqual(CursorSafeStorage.token(from: "plain-token", password: "ignored"), "plain-token")
+    }
+
+    func testLockedSessionFallsBackToASavedToken() {
+        XCTAssertEqual(
+            try CursorAccessTokenProvider.resolve(local: .locked, saved: "aaa.bbb.ccc").get(),
+            "aaa.bbb.ccc"
+        )
+        XCTAssertEqual(
+            try CursorAccessTokenProvider.resolve(local: .value("local.token.value"), saved: "aaa.bbb.ccc").get(),
+            "local.token.value"
+        )
+        let locked = CursorAccessTokenProvider.resolve(local: .locked, saved: nil)
+        guard case .failure(let error) = locked else {
+            return XCTFail("expected the keychain message")
+        }
+        XCTAssertEqual(error, .message(CursorAccessTokenProvider.lockedSessionMessage))
+    }
 }

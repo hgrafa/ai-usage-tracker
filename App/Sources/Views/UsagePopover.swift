@@ -5,7 +5,7 @@ struct UsagePopover: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("AI Usage")
+            Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "AI Usage")
                 .font(.title3.weight(.semibold))
                 .padding(.bottom, 4)
             if model.visibleProviders.isEmpty {
