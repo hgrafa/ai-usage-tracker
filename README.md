@@ -62,7 +62,7 @@ Install the Codex CLI and run `codex login`. The app asks the local `codex app-s
 
 ### Cursor
 
-If you are signed in to the Cursor app, AI Usage reads the local session and requests usage itself. Current Cursor builds seal that session, so the first refresh asks for Keychain access to Cursor Safe Storage. If that session is missing, paste a Cursor access token in the Cursor section.
+If you are signed in to the Cursor app, AI Usage reads the local session and requests usage itself. Current Cursor builds seal that session. macOS asks for the login keychain password once, and that unlock is saved for later refreshes. If that session is missing, paste a Cursor access token in the Cursor section.
 
 ### Grok Bot
 

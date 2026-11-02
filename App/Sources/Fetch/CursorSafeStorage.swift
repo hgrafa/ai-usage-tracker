@@ -23,19 +23,70 @@ enum CursorSafeStorage {
         return decryptV10(blob.dropFirst(3), password: password)
     }
 
-    static func open(_ stored: String) -> String? {
-        guard let password = keychainPassword() else { return nil }
+    private static let passwords = SafeStoragePasswords(
+        readLogin: { prompt in loginPassword(prompt: prompt) },
+        readSaved: { savedPassword() },
+        writeSaved: { savePassword($0) }
+    )
+
+    /// The next password read may show one login-keychain dialog. Automatic refreshes do not call this.
+    static func allowPrompt() async {
+        await passwords.allowPrompt()
+    }
+
+    static func open(_ stored: String) async -> String? {
+        guard let password = await passwords.password() else { return nil }
         return token(from: stored, password: password)
     }
 
-    private static func keychainPassword() -> String? {
-        let query: [String: Any] = [
+    /// Always Allow does not stick for an ad-hoc signature, so the login item is copied into our keychain after one read.
+    private static func loginPassword(prompt: Bool) -> String? {
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
+        if !prompt {
+            query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUISkip
+        }
+        return copyPassword(query)
+    }
+
+    private static func savedPassword() -> String? {
+        var query = savedQuery()
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        return copyPassword(query)
+    }
+
+    private static func savePassword(_ password: String) {
+        let query = savedQuery()
+        let attributes: [String: Any] = [
+            kSecValueData as String: Data(password.utf8),
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        ]
+        if SecItemUpdate(query as CFDictionary, attributes as CFDictionary) == errSecItemNotFound {
+            var add = query
+            for (key, value) in attributes {
+                add[key] = value
+            }
+            SecItemAdd(add as CFDictionary, nil)
+        }
+    }
+
+    private static func savedQuery() -> [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: KeychainCredentialStore.service,
+            kSecAttrAccount as String: "cursor-safe-storage",
+            kSecUseDataProtectionKeychain as String: true,
+            kSecUseAuthenticationUI as String: kSecUseAuthenticationUISkip
+        ]
+    }
+
+    private static func copyPassword(_ query: [String: Any]) -> String? {
         var item: CFTypeRef?
         guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
               let data = item as? Data
@@ -89,5 +140,54 @@ enum CursorSafeStorage {
         let text = String(bytes: output.prefix(moved), encoding: .utf8)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return text?.isEmpty == false ? text : nil
+    }
+}
+
+/// Reads Cursor's login-keychain password at most once. Later reads use memory, then our own keychain item.
+actor SafeStoragePasswords {
+    private var memory: String?
+    private var armed = false
+    private var inflight: Task<String?, Never>?
+    private let readLogin: @Sendable (Bool) -> String?
+    private let readSaved: @Sendable () -> String?
+    private let writeSaved: @Sendable (String) -> Void
+
+    init(
+        readLogin: @escaping @Sendable (Bool) -> String?,
+        readSaved: @escaping @Sendable () -> String?,
+        writeSaved: @escaping @Sendable (String) -> Void
+    ) {
+        self.readLogin = readLogin
+        self.readSaved = readSaved
+        self.writeSaved = writeSaved
+    }
+
+    func allowPrompt() {
+        armed = true
+    }
+
+    func password() async -> String? {
+        if let saved = readSaved(), !saved.isEmpty {
+            memory = saved
+            return saved
+        }
+        if let memory { return memory }
+        if let inflight { return await inflight.value }
+        let prompt = armed
+        armed = false
+        let readLogin = self.readLogin
+        let job = Task { () -> String? in
+            // Background refresh must not touch the login item. A skipped lookup can still raise its dialog.
+            guard prompt else { return nil }
+            return readLogin(true)
+        }
+        inflight = job
+        let value = await job.value
+        inflight = nil
+        if let value {
+            memory = value
+            writeSaved(value)
+        }
+        return value
     }
 }

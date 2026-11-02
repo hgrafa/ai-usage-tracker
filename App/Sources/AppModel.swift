@@ -46,6 +46,7 @@ final class AppModel: ObservableObject {
     private let defaults: UserDefaults
     private var refreshTask: Task<Void, Never>?
     private var refreshAgain = false
+    private var promptForKeychain = false
     private var autoRefreshTask: Task<Void, Never>?
     private var alertTracker: LimitAlertTracker
     private var backoff = RefreshBackoff()
@@ -72,12 +73,17 @@ final class AppModel: ObservableObject {
             notifier = LimitNotifier()
             phases = Dictionary(uniqueKeysWithValues: ProviderID.allCases.map { ($0, ProviderPhase.loading(stale: nil)) })
             startAutoRefresh()
-            refresh()
+            enqueueRefresh()
             refreshNotificationPermission()
         }
     }
 
     func refresh() {
+        promptForKeychain = true
+        enqueueRefresh()
+    }
+
+    private func enqueueRefresh() {
         if refreshTask != nil {
             refreshAgain = true
             return
@@ -90,7 +96,7 @@ final class AppModel: ObservableObject {
     func refreshIfStale(maxAge: TimeInterval = AppModel.staleInterval) {
         if isRefreshing { return }
         if let lastRefreshAt, Date().timeIntervalSince(lastRefreshAt) < maxAge { return }
-        refresh()
+        enqueueRefresh()
     }
 
     func saveSecret(for provider: ProviderID, value: String) {
@@ -191,7 +197,7 @@ final class AppModel: ObservableObject {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(Self.autoRefreshInterval))
                 if Task.isCancelled { break }
-                self.refresh()
+                self.enqueueRefresh()
             }
         }
     }
@@ -207,6 +213,10 @@ final class AppModel: ObservableObject {
     }
 
     private func performRefresh() async {
+        if promptForKeychain {
+            promptForKeychain = false
+            await CursorSafeStorage.allowPrompt()
+        }
         savedSecretProviders = Set(ProviderID.allCases.filter { store.contains(provider: $0) })
 
         // Claude is always tried: a Claude Code login needs no saved secret.

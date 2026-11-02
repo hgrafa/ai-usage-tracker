@@ -3,10 +3,21 @@ import Foundation
 struct CursorSessionLocator: Sendable {
     var homeDirectory: String = FileManager.default.homeDirectoryForCurrentUser.path
 
+    func hasStoredSession() async -> Bool {
+        await storedAccessToken() != nil
+    }
+
     func localToken() async -> LocalCursorToken {
+        guard let stored = await storedAccessToken() else { return .none }
+        guard CursorSafeStorage.isSealed(stored) else { return .value(stored) }
+        guard let opened = await CursorSafeStorage.open(stored) else { return .locked }
+        return .value(opened)
+    }
+
+    private func storedAccessToken() async -> String? {
         let home = homeDirectory
         let path = Self.databasePath(home: home)
-        guard FileManager.default.fileExists(atPath: path) else { return .none }
+        guard FileManager.default.fileExists(atPath: path) else { return nil }
         let uri = Self.databaseURI(home: home)
         let output = await Task.detached {
             BlockingProcess.run(
@@ -15,13 +26,9 @@ struct CursorSessionLocator: Sendable {
                 timeout: 5
             )
         }.value
-        guard output.status == 0, !output.timedOut else { return .none }
-        guard let text = String(data: output.stdout, encoding: .utf8),
-              let stored = Self.normalizeToken(text)
-        else { return .none }
-        guard CursorSafeStorage.isSealed(stored) else { return .value(stored) }
-        guard let opened = CursorSafeStorage.open(stored) else { return .locked }
-        return .value(opened)
+        guard output.status == 0, !output.timedOut else { return nil }
+        guard let text = String(data: output.stdout, encoding: .utf8) else { return nil }
+        return Self.normalizeToken(text)
     }
 
     static func databasePath(home: String) -> String {
@@ -103,7 +110,7 @@ enum LocalCursorToken: Equatable, Sendable {
 
 struct CursorAccessTokenProvider: Sendable {
     static let missingTokenMessage = "Sign in to Cursor or set the Cursor token."
-    static let lockedSessionMessage = "Allow Keychain access to Cursor Safe Storage, then refresh."
+    static let lockedSessionMessage = "Click Refresh and allow Keychain access once."
 
     var locator: CursorSessionLocator
     var store: KeychainCredentialStore
@@ -123,7 +130,7 @@ struct CursorAccessTokenProvider: Sendable {
     }
 
     func hasCredential() async -> Bool {
-        if case .none = await locator.localToken() {
+        if await locator.hasStoredSession() == false {
             return store.contains(provider: .cursor)
         }
         return true
