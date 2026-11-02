@@ -16,6 +16,7 @@
 		16E59862ADAB537B9D5225AC /* AnthropicAPIUsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98DC8DF77789E06263C77A3 /* AnthropicAPIUsageTests.swift */; };
 		1C99F2B4AFA8817E23C1C6F7 /* BreakdownChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57BD3CE8928CA07FED844CDF /* BreakdownChart.swift */; };
 		1E0802FE46A3FF7FFDA2C5CE /* ClaudeCodeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C50F52FEE2020E478F2D1C4 /* ClaudeCodeClient.swift */; };
+		22B448B17657942344D39184 /* CursorSafeStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD1D6507C01E374D57D90CAE /* CursorSafeStorage.swift */; };
 		22D1575EFAB506E1BEFBFEA6 /* KeychainCredentialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9E113B408C51107D55C6E6F /* KeychainCredentialStore.swift */; };
 		3241D476AFB2C1A6F0AC8E64 /* MoonshotUsageFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE896DB65F196C39266ACDF6 /* MoonshotUsageFetcher.swift */; };
 		3308FC346E5EFA444B75574F /* RefreshBackoff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F53427D8850DF65F9CA0C78 /* RefreshBackoff.swift */; };
@@ -162,6 +163,7 @@
 		F0590831C3C1BBCEDBEFD820 /* CredentialEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialEditor.swift; sourceTree = "<group>"; };
 		F10B03740E5989D813F014E7 /* MenuBarMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarMathTests.swift; sourceTree = "<group>"; };
 		F47E05092D522C644AF78C6F /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
+		FD1D6507C01E374D57D90CAE /* CursorSafeStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorSafeStorage.swift; sourceTree = "<group>"; };
 		FD2FF9F7E8316E717D9200AB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -205,6 +207,7 @@
 				B7157E1462A082CB7E8552A2 /* ClaudeUsageFetcher.swift */,
 				3CC25658E3ACB7E66DA86FE8 /* CodexAppServerClient.swift */,
 				7D7CBFAFA310F5F48EF4644A /* CodexUsageFetcher.swift */,
+				FD1D6507C01E374D57D90CAE /* CursorSafeStorage.swift */,
 				DEE63171A421D1E7DD6FF5B2 /* CursorSessionLocator.swift */,
 				40462E490215E5F2696372DE /* CursorUsageFetcher.swift */,
 				A2F051B3332C31D8CFCA0A17 /* DeepSeekUsageFetcher.swift */,
@@ -476,6 +479,7 @@
 				66D9D052D27B06BFDF9A2C49 /* CredentialEditor.swift in Sources */,
 				85633A21DCDE53E0C153526E /* CredentialPrompt.swift in Sources */,
 				93C548227FC10FB430B98EDD /* CredentialStoring.swift in Sources */,
+				22B448B17657942344D39184 /* CursorSafeStorage.swift in Sources */,
 				4507E372E555DAFC2949F1EB /* CursorSessionLocator.swift in Sources */,
 				04E0AFEA61365EF7DFDB18F1 /* CursorUsageFetcher.swift in Sources */,
 				EB3EDAEA3523D712B45F5A64 /* DeepSeekUsageFetcher.swift in Sources */,

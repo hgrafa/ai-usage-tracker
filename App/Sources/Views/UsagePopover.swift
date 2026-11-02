@@ -16,7 +16,7 @@ struct UsagePopover: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text(showingSettings ? "Settings" : "AI Usage")
+                Text(showingSettings ? "Settings" : (Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "AI Usage"))
                     .font(.title3.weight(.semibold))
                 Spacer()
                 SettingsGearButton(isActive: showingSettings) {
