@@ -9,7 +9,7 @@ enum Theme {
 
     static func heatColor(for fraction: Double) -> Color {
         switch MeterHeat.level(for: fraction) {
-        case .low: .white
+        case .low: .primary
         case .warm: .orange
         case .hot: .red
         }

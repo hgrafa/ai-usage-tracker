@@ -3,7 +3,18 @@ import Foundation
 struct CursorSessionLocator: Sendable {
     var homeDirectory: String = FileManager.default.homeDirectoryForCurrentUser.path
 
-    func accessToken() async -> String? {
+    func hasStoredSession() async -> Bool {
+        await storedAccessToken() != nil
+    }
+
+    func localToken() async -> LocalCursorToken {
+        guard let stored = await storedAccessToken() else { return .none }
+        guard CursorSafeStorage.isSealed(stored) else { return .value(stored) }
+        guard let opened = await CursorSafeStorage.open(stored) else { return .locked }
+        return .value(opened)
+    }
+
+    private func storedAccessToken() async -> String? {
         let home = homeDirectory
         let path = Self.databasePath(home: home)
         guard FileManager.default.fileExists(atPath: path) else { return nil }
@@ -91,35 +102,54 @@ enum TokenShape {
     }
 }
 
+enum LocalCursorToken: Equatable, Sendable {
+    case none
+    case value(String)
+    case locked
+}
+
 struct CursorAccessTokenProvider: Sendable {
     static let missingTokenMessage = "Sign in to Cursor or set the Cursor token."
+    static let lockedSessionMessage = "Click Refresh and allow Keychain access once."
 
     var locator: CursorSessionLocator
     var store: KeychainCredentialStore
 
     func bearerToken() async throws -> String {
-        let local = await locator.accessToken()
+        let local = await locator.localToken()
         let saved: String?
         do {
             saved = try store.load(provider: .cursor)?.secret
         } catch {
-            if local == nil {
+            if case .none = local {
                 throw UsageFetchError.message("The saved Cursor session could not be read.")
             }
             saved = nil
         }
-        if let token = Self.bearer(local: local, saved: saved) {
-            return token
-        }
-        if saved != nil {
-            throw UsageFetchError.message("Paste a Cursor access token.")
-        }
-        throw UsageFetchError.message(Self.missingTokenMessage)
+        return try Self.resolve(local: local, saved: saved).get()
     }
 
     func hasCredential() async -> Bool {
-        if await locator.accessToken() != nil { return true }
-        return store.contains(provider: .cursor)
+        if await locator.hasStoredSession() == false {
+            return store.contains(provider: .cursor)
+        }
+        return true
+    }
+
+    static func resolve(local: LocalCursorToken, saved: String?) -> Result<String, UsageFetchError> {
+        switch local {
+        case .value(let token):
+            let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return .success(trimmed) }
+        case .locked:
+            if let token = bearer(local: nil, saved: saved) { return .success(token) }
+            return .failure(.message(lockedSessionMessage))
+        case .none:
+            break
+        }
+        if let token = bearer(local: nil, saved: saved) { return .success(token) }
+        if saved != nil { return .failure(.message("Paste a Cursor access token.")) }
+        return .failure(.message(missingTokenMessage))
     }
 
     static func bearer(local: String?, saved: String?) -> String? {

@@ -32,6 +32,13 @@ final class StatusPageTests: XCTestCase {
         XCTAssertEqual(pair.grok.affected, ["Grok Bot"])
     }
 
+    func testAnthropicAPIShowsTheClaudeStatusPage() async throws {
+        let fetched = await StatusPageFetcher(http: RecordingHTTP(status: 200, body: Self.claude)).fetch()
+        let claude = try XCTUnwrap(fetched[.claude])
+        XCTAssertEqual(claude.level, .degraded)
+        XCTAssertEqual(fetched[.anthropic], claude)
+    }
+
     private static let claude = """
     {
       "status": {"indicator": "minor", "description": "Partially Degraded Service"},

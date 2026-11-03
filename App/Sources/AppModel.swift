@@ -6,13 +6,23 @@ final class AppModel: ObservableObject {
     @Published private(set) var phases: [ProviderID: ProviderPhase]
     @Published private(set) var savedSecretProviders: Set<ProviderID> = []
     @Published private(set) var enabledProviders: Set<ProviderID>
+    @Published private(set) var providerOrder: [ProviderID]
     @Published private(set) var serviceHealth: [ProviderID: ServiceHealth] = [:]
     @Published private(set) var isRefreshing = false
     @Published private(set) var lastRefreshAt: Date?
+    @Published private(set) var alertThresholds: Set<Int>
+    @Published private(set) var notificationPermission: NotificationPermission = .notAsked
+    @Published var showsProviderStatus: Bool {
+        didSet { defaults.set(showsProviderStatus, forKey: Self.showsProviderStatusKey) }
+    }
 
-    static let autoRefreshInterval: TimeInterval = 10 * 60
+    nonisolated static let autoRefreshInterval: TimeInterval = 2 * 60
     static let staleInterval: TimeInterval = 60
-    static let enabledSectionsKey = "enabledProviders"
+    nonisolated static let enabledSectionsKey = "enabledProviders"
+    nonisolated static let providerOrderKey = "providerOrder"
+    nonisolated static let alertThresholdsKey = "limitAlertThresholds"
+    nonisolated static let announcedAlertsKey = "limitAlertsAnnounced"
+    nonisolated static let showsProviderStatusKey = "showsProviderStatus"
 
     var menuBarReadings: [MenuBarReading] {
         MenuBarMath.readings(in: phases, visible: visibleProviders)
@@ -23,7 +33,7 @@ final class AppModel: ObservableObject {
     }
 
     var visibleProviders: [ProviderID] {
-        ProviderID.allCases.filter { enabledProviders.contains($0) }
+        ProviderOrder(providers: providerOrder).visible(enabledProviders)
     }
 
     private var visiblePhases: [ProviderID: ProviderPhase] {
@@ -36,7 +46,11 @@ final class AppModel: ObservableObject {
     private let defaults: UserDefaults
     private var refreshTask: Task<Void, Never>?
     private var refreshAgain = false
+    private var promptForKeychain = false
     private var autoRefreshTask: Task<Void, Never>?
+    private var alertTracker: LimitAlertTracker
+    private var backoff = RefreshBackoff()
+    private let notifier: LimitNotifier?
 
     init(
         store: KeychainCredentialStore = KeychainCredentialStore(),
@@ -48,16 +62,28 @@ final class AppModel: ObservableObject {
         self.registry = FetcherRegistry(store: store, locator: locator)
         self.defaults = defaults
         enabledProviders = EnabledSections(stored: defaults.stringArray(forKey: Self.enabledSectionsKey)).providers
+        providerOrder = ProviderOrder(stored: defaults.stringArray(forKey: Self.providerOrderKey)).providers
+        showsProviderStatus = defaults.object(forKey: Self.showsProviderStatusKey) as? Bool ?? true
+        alertThresholds = AlertThresholds(stored: defaults.array(forKey: Self.alertThresholdsKey) as? [Int]).values
+        alertTracker = LimitAlertTracker(announced: defaults.dictionary(forKey: Self.announcedAlertsKey) as? [String: Int] ?? [:])
         if Self.isRunningUnderTest {
+            notifier = nil
             phases = Dictionary(uniqueKeysWithValues: ProviderID.allCases.map { ($0, ProviderPhase.unconfigured) })
         } else {
+            notifier = LimitNotifier()
             phases = Dictionary(uniqueKeysWithValues: ProviderID.allCases.map { ($0, ProviderPhase.loading(stale: nil)) })
             startAutoRefresh()
-            refresh()
+            enqueueRefresh()
+            refreshNotificationPermission()
         }
     }
 
     func refresh() {
+        promptForKeychain = true
+        enqueueRefresh()
+    }
+
+    private func enqueueRefresh() {
         if refreshTask != nil {
             refreshAgain = true
             return
@@ -70,14 +96,22 @@ final class AppModel: ObservableObject {
     func refreshIfStale(maxAge: TimeInterval = AppModel.staleInterval) {
         if isRefreshing { return }
         if let lastRefreshAt, Date().timeIntervalSince(lastRefreshAt) < maxAge { return }
-        refresh()
+        enqueueRefresh()
     }
 
     func saveSecret(for provider: ProviderID, value: String) {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        guard provider == .claude || provider == .cursor else { return }
-        let kind: CredentialKind = (provider == .claude || trimmed.contains("WorkosCursorSessionToken")) ? .sessionCookie : .apiKey
+        guard CredentialPrompt.prompt(for: provider)?.showsSecretField == true else { return }
+        let kind: CredentialKind
+        switch provider {
+        case .claude:
+            kind = .sessionCookie
+        case .anthropic:
+            if case .consoleCookie = AnthropicAPISecret(paste: trimmed) { kind = .sessionCookie } else { kind = .apiKey }
+        default:
+            kind = trimmed.contains("WorkosCursorSessionToken") ? .sessionCookie : .apiKey
+        }
         do {
             try store.save(Credential(provider: provider, kind: kind, secret: trimmed))
         } catch {
@@ -107,6 +141,46 @@ final class AppModel: ObservableObject {
         }
     }
 
+    func moveProviders(from source: IndexSet, to destination: Int) {
+        let next = ProviderOrder(providers: providerOrder).moving(from: source, to: destination)
+        guard next.providers != providerOrder else { return }
+        providerOrder = next.providers
+        defaults.set(next.stored, forKey: Self.providerOrderKey)
+    }
+
+    func isAlertThresholdEnabled(_ threshold: Int) -> Bool {
+        alertThresholds.contains(threshold)
+    }
+
+    func setAlertThreshold(_ threshold: Int, enabled: Bool) {
+        var next = alertThresholds
+        if enabled {
+            next.insert(threshold)
+        } else {
+            next.remove(threshold)
+        }
+        let thresholds = AlertThresholds(stored: Array(next))
+        guard thresholds.values != alertThresholds else { return }
+        alertThresholds = thresholds.values
+        defaults.set(thresholds.stored, forKey: Self.alertThresholdsKey)
+        guard enabled, let notifier else { return }
+        Task { @MainActor in
+            if self.notificationPermission == .notAsked {
+                self.notificationPermission = await notifier.requestPermission()
+            }
+            for snapshot in MenuBarMath.snapshots(from: self.visiblePhases) {
+                self.announceCrossings(in: snapshot)
+            }
+        }
+    }
+
+    func refreshNotificationPermission() {
+        guard let notifier else { return }
+        Task { @MainActor in
+            self.notificationPermission = await notifier.permission()
+        }
+    }
+
     func removeSecret(for provider: ProviderID) {
         do {
             try store.delete(provider: provider)
@@ -123,7 +197,7 @@ final class AppModel: ObservableObject {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(Self.autoRefreshInterval))
                 if Task.isCancelled { break }
-                self.refresh()
+                self.enqueueRefresh()
             }
         }
     }
@@ -139,21 +213,27 @@ final class AppModel: ObservableObject {
     }
 
     private func performRefresh() async {
-        savedSecretProviders = []
-        if store.contains(provider: .claude) { savedSecretProviders.insert(.claude) }
-        if store.contains(provider: .cursor) { savedSecretProviders.insert(.cursor) }
+        if promptForKeychain {
+            promptForKeychain = false
+            await CursorSafeStorage.allowPrompt()
+        }
+        savedSecretProviders = Set(ProviderID.allCases.filter { store.contains(provider: $0) })
 
-        var configured: [ProviderID] = []
-        if savedSecretProviders.contains(.claude) { configured.append(.claude) }
-        configured.append(.codex)
+        // Claude is always tried: a Claude Code login needs no saved secret.
+        var configured: [ProviderID] = [.claude, .codex]
         if await tokens.hasCredential() {
             configured.append(.cursor)
             configured.append(.grok)
         }
-        configured = configured.filter { enabledProviders.contains($0) }
+        for provider in [ProviderID.openrouter, .deepseek, .moonshot, .anthropic] where savedSecretProviders.contains(provider) {
+            configured.append(provider)
+        }
+        let now = Date()
+        let waiting = Set(configured.filter { backoff.isWaiting($0, now: now) })
+        configured = configured.filter { enabledProviders.contains($0) && !waiting.contains($0) }
 
         var stale: [ProviderID: UsageSnapshot] = [:]
-        for provider in ProviderID.allCases where enabledProviders.contains(provider) {
+        for provider in ProviderID.allCases where enabledProviders.contains(provider) && !waiting.contains(provider) {
             if configured.contains(provider) {
                 if let previous = MenuBarMath.snapshot(for: provider, in: phases) {
                     stale[provider] = previous
@@ -198,17 +278,33 @@ final class AppModel: ObservableObject {
     }
 
     private func apply(_ provider: ProviderID, result: Result<UsageSnapshot, UsageFetchError>, stale: UsageSnapshot?) {
-        switch result {
-        case .success(let snapshot):
-            phases[provider] = .loaded(snapshot)
-        case .failure(let error):
-            let message = oneLine(error.errorDescription ?? "The usage request failed.")
-            phases[provider] = .failed(message: message, stale: stale)
+        backoff.record(provider, result: result, at: Date())
+        phases[provider] = Self.phase(after: result, stale: stale)
+        if case .success(let snapshot) = result {
+            announceCrossings(in: snapshot)
         }
     }
 
-    private func oneLine(_ text: String) -> String {
-        text.split(whereSeparator: \.isNewline).first.map(String.init) ?? text
+    private func announceCrossings(in snapshot: UsageSnapshot) {
+        let alerts = alertTracker.alerts(for: snapshot, thresholds: alertThresholds)
+        defaults.set(alertTracker.announced, forKey: Self.announcedAlertsKey)
+        for alert in alerts {
+            notifier?.post(alert)
+        }
+    }
+
+    /// Nothing to read is not an error: the section shows how to set the provider up.
+    nonisolated static func phase(after result: Result<UsageSnapshot, UsageFetchError>, stale: UsageSnapshot?) -> ProviderPhase {
+        switch result {
+        case .success(let snapshot):
+            return .loaded(snapshot)
+        case .failure(.notConfigured):
+            return .unconfigured
+        case .failure(let error):
+            let text = error.errorDescription ?? "The usage request failed."
+            let message = text.split(whereSeparator: \.isNewline).first.map(String.init) ?? text
+            return .failed(message: message, stale: stale)
+        }
     }
 
     static var isRunningUnderTest: Bool {

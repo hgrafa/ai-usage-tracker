@@ -7,25 +7,31 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private let model: AppModel
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let popover = NSPopover()
+    private let route = PopoverRoute()
     private var observation: AnyCancellable?
     private var outsideClickMonitor: Any?
+    private var appearanceObservation: NSKeyValueObservation?
 
-    init(model: AppModel) {
+    init(model: AppModel, updater: AppUpdater) {
         self.model = model
         super.init()
-        let hosting = PopoverHostingController(rootView: UsagePopover(model: model))
+        let hosting = PopoverHostingController(rootView: UsagePopover(model: model, updater: updater, route: route))
         hosting.sizingOptions = .preferredContentSize
         hosting.safeAreaRegions = []
         popover.contentViewController = hosting
         popover.behavior = .transient
         popover.animates = false
         popover.delegate = self
-        popover.appearance = NSAppearance(named: .darkAqua)
 
         if let button = statusItem.button {
             button.target = self
             button.action = #selector(togglePopover(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+            appearanceObservation = button.observe(\.effectiveAppearance) { [weak self] _, _ in
+                Task { @MainActor in
+                    self?.applyTitle()
+                }
+            }
         }
         observation = model.objectWillChange.sink { [weak self] _ in
             Task { @MainActor in
@@ -43,6 +49,7 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     func popoverDidClose(_ notification: Notification) {
         statusItem.button?.highlight(false)
         removeOutsideClickMonitor()
+        route.showingSettings = false
     }
 
     /// `.transient` never sees a click on another menu bar item (Weather, Control Center).
@@ -64,12 +71,11 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     }
 
     private func applyTitle() {
-        let image = MenuBarTitle.statusImage(for: model.menuBarReadings)
-        statusItem.length = max(image.size.width, 28)
         guard let button = statusItem.button else { return }
-        image.isTemplate = true
+        let color = MenuBarTitle.textColor(for: button.effectiveAppearance)
+        let image = MenuBarTitle.statusImage(for: model.menuBarReadings, color: color)
+        statusItem.length = max(image.size.width, 28)
         button.image = image
-        button.image?.isTemplate = true
         button.imageScaling = .scaleNone
         button.imagePosition = .imageOnly
         button.title = ""

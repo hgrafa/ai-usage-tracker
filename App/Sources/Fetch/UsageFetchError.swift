@@ -18,6 +18,10 @@ enum UsageFetchError: Error, Equatable, LocalizedError, Sendable {
                 return "Claude rejected the session cookie."
             case .codex:
                 return "The request was not authorized."
+            case .openrouter, .deepseek, .moonshot:
+                return "\(provider.displayName) rejected the API key."
+            case .anthropic:
+                return "Anthropic rejected the Admin API key or Console cookie."
             }
         case .rateLimited:
             return "Too many requests. Try again in a little while."

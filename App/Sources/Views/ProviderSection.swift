@@ -87,13 +87,13 @@ struct ProviderSection: View {
         if let breakdown = snapshot.breakdown {
             BreakdownChart(breakdown: breakdown)
         }
-        if let extras = snapshot.extras {
+        if let extras = snapshot.extras, extras.showsCreditSection || extras.limitResetCaption != nil {
             ClaudeExtrasSection(extras: extras)
         }
     }
 
     private var showsSecretControls: Bool {
-        hasSavedSecret && (provider == .claude || provider == .cursor) && !isUnconfigured
+        hasSavedSecret && CredentialPrompt.prompt(for: provider)?.showsSecretField == true && !isUnconfigured
     }
 
     private var isUnconfigured: Bool {
@@ -217,7 +217,7 @@ private struct ClaudeExtrasSection: View {
                         .opacity(0.85)
                 }
             }
-            if let line = extras.limitResetCaption ?? extras.reassurance {
+            if let line = extras.limitResetCaption {
                 Text(line)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
