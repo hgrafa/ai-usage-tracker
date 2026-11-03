@@ -29,6 +29,8 @@ enum MenuBarTitle {
         }
         let size = NSSize(width: max(width, 16), height: height)
         let image = NSImage(size: size, flipped: true) { _ in
+            // Subpixel smoothing bakes a color fringe, so the inactive menu bar tint no longer matches system items.
+            NSGraphicsContext.current?.cgContext.setShouldSmoothFonts(false)
             var x = sidePad
             if readings.isEmpty {
                 if let symbol = NSImage(systemSymbolName: "gauge.medium", accessibilityDescription: "AI") {
