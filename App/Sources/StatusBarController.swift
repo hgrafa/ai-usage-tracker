@@ -9,6 +9,7 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
     private let popover = NSPopover()
     private let route = PopoverRoute()
     private var observation: AnyCancellable?
+    private var outsideClickMonitor: Any?
     private var appearanceObservation: NSKeyValueObservation?
 
     init(model: AppModel, updater: AppUpdater) {
@@ -42,11 +43,31 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
 
     func popoverDidShow(_ notification: Notification) {
         popover.contentViewController?.view.window?.animationBehavior = .none
+        installOutsideClickMonitor()
     }
 
     func popoverDidClose(_ notification: Notification) {
         statusItem.button?.highlight(false)
+        removeOutsideClickMonitor()
         route.showingSettings = false
+    }
+
+    /// `.transient` never sees a click on another menu bar item (Weather, Control Center).
+    private func installOutsideClickMonitor() {
+        guard outsideClickMonitor == nil else { return }
+        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.popover.isShown else { return }
+                self.popover.performClose(nil)
+            }
+        }
+    }
+
+    private func removeOutsideClickMonitor() {
+        if let outsideClickMonitor {
+            NSEvent.removeMonitor(outsideClickMonitor)
+            self.outsideClickMonitor = nil
+        }
     }
 
     private func applyTitle() {
@@ -58,7 +79,6 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
         button.imageScaling = .scaleNone
         button.imagePosition = .imageOnly
         button.title = ""
-        button.attributedTitle = NSAttributedString(string: "")
         let label = model.menuBarReadings.map(MenuBarLabel.itemLabel).joined(separator: ", ")
         button.setAccessibilityLabel(label.isEmpty ? "AI Usage" : label)
     }
@@ -75,8 +95,28 @@ final class StatusBarController: NSObject, NSPopoverDelegate {
 }
 
 private final class PopoverHostingController<Content: View>: NSHostingController<Content> {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.wantsLayer = true
+        view.layer?.isOpaque = false
+        view.layer?.backgroundColor = NSColor.clear.cgColor
+    }
+
     override func viewDidLayout() {
         super.viewDidLayout()
+        view.layer?.isOpaque = false
+        view.layer?.backgroundColor = NSColor.clear.cgColor
         view.window?.animationBehavior = .none
+        guard let root = view.window?.contentView?.superview ?? view.window?.contentView else { return }
+        keepPopoverGlassActive(root)
+    }
+
+    /// Default popover glass follows key state and turns flat grey when this screen is not focused.
+    private func keepPopoverGlassActive(_ view: NSView) {
+        if let effect = view as? NSVisualEffectView {
+            if effect.blendingMode != .behindWindow { effect.blendingMode = .behindWindow }
+            if effect.state != .active { effect.state = .active }
+        }
+        view.subviews.forEach(keepPopoverGlassActive)
     }
 }
